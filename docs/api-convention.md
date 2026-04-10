@@ -13,22 +13,25 @@ DELETE /vehicles/{id}
 {\
 "success": true,\
 "data": {},\
-"message": ""\
+"message": "string\
+"timestamp": "ISO-8601"\
 }
 
 ## Error Format
 
 {\
 "success": false,\
-"message": "Vehicle not found"\
+"message": "string"\
+"errorCode": STRING_ENUM\
+"timestamp": "ISO-8601"\
 }
 
 ## HTTP Rules
 
-200 OK
-201 Created
-400 Bad Request
-401 Unauthorized
-403 Forbidden
-404 Not Found
-500 Internal Server Error
+200 OK &rarr; success GET\
+201 Created &rarr; success POST\
+400 Bad Request &rarr; validation/ business error\
+401 Unauthorized &rarr; not login\
+403 Forbidden &rarr; Permission denied\
+404 Not Found &rarr; Resource not found\
+500 Internal Server Error &rarr; System error / Internal server error\
