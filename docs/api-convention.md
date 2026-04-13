@@ -13,7 +13,8 @@ DELETE /vehicles/{id}
 {\
 "success": true,\
 "data": {},\
-"message": "string\
+"message": "string"\
+"traceId": "string"\
 "timestamp": "ISO-8601"\
 }
 
@@ -23,6 +24,7 @@ DELETE /vehicles/{id}
 "success": false,\
 "message": "string"\
 "errorCode": STRING_ENUM\
+"traceId": "string"\
 "timestamp": "ISO-8601"\
 }
 
