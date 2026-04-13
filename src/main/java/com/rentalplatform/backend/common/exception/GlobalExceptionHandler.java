@@ -13,14 +13,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<?>> handleValidationException(MethodArgumentNotValidException ex) {
 
-        var fieldError = ex.getBindingResult().getFieldError();
-
-        String message = (fieldError != null)
-                ? fieldError.getField() + ": " + fieldError.getDefaultMessage()
-                : "Validation error";
+        String message = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(err -> err.getField() + ": " + err.getDefaultMessage())
+                .findFirst()
+                .orElse("Validation error");
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ApiResponse<>(message, ErrorCode.VALIDATION_ERROR.name()));
+                .body(ApiResponse.error(message, ErrorCode.valueOf(ErrorCode.VALIDATION_ERROR.name())));
     }
 
     // CUSTOM BUSINESS EXCEPTION
@@ -35,15 +36,15 @@ public class GlobalExceptionHandler {
         };
 
         return ResponseEntity.status(status)
-                .body(new ApiResponse<>(ex.getMessage(), ex.getErrorCode().name()));
+                .body(ApiResponse.error(ex.getMessage(), ErrorCode.valueOf(ex.getErrorCode().name())));
     }
 
     // RUNTIME (fallback business error)
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiResponse<?>> handleRuntimeException(RuntimeException ex) {
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ApiResponse<>(ex.getMessage(), ErrorCode.BAD_REQUEST.name()));
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error(ex.getMessage(), ErrorCode.valueOf(ErrorCode.INTERNAL_ERROR.name())));
     }
 
     // UNKNOWN SYSTEM ERROR
@@ -53,6 +54,8 @@ public class GlobalExceptionHandler {
         ex.printStackTrace(); //or using logger
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ApiResponse<>("Internal server error", ErrorCode.INTERNAL_ERROR.name()));
+                .body(ApiResponse.error("Internal server error", ErrorCode.valueOf(ErrorCode.INTERNAL_ERROR.name())));
     }
+
+
 }
