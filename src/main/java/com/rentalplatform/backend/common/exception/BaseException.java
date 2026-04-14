@@ -6,8 +6,8 @@ import lombok.Getter;
 public class BaseException extends RuntimeException {
     private final ErrorCode errorCode;
 
-    public BaseException(String message, ErrorCode errorCode) {
-        super(message);
+    public BaseException(ErrorCode errorCode) {
+        super(errorCode.name());
         this.errorCode = errorCode;
     }
 }

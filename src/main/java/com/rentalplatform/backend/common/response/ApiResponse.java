@@ -18,8 +18,8 @@ public class ApiResponse<T> {
     private T data;
     private String message;
     private String traceId;
-    private String errorCode;
-    private String timestamp;
+    private ErrorCode errorCode;
+    private Instant timestamp;
 
     //SUCCESS
     public static <T> ApiResponse<T> success(T data, String message) {
@@ -28,18 +28,18 @@ public class ApiResponse<T> {
                 .data(data)
                 .message(message)
                 .traceId(MDC.get("traceId"))
-                .timestamp(Instant.now().toString())
+                .timestamp(Instant.now())
                 .build();
     }
 
     //ERROR
-    public static <T> ApiResponse<T> error(String message, ErrorCode errorCode) {
+    public static <T> ApiResponse<T> error(ErrorCode errorCode, String message) {
         return ApiResponse.<T>builder()
                 .success(false)
-                .message(message)
-                .errorCode(String.valueOf(errorCode))
+                .message(message != null ? message : errorCode.getMessage())
+                .errorCode(errorCode)
                 .traceId(MDC.get("traceId"))
-                .timestamp(Instant.now().toString())
+                .timestamp(Instant.now())
                 .build();
     }
 }
