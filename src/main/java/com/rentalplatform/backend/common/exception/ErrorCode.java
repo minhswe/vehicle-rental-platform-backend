@@ -20,7 +20,9 @@ public enum ErrorCode {
     PHONE_ALREADY_EXISTS(409, "Phone number already exists"),
     USER_ALREADY_EXISTS(409, "User already exists"),
     INVALID_CREDENTIALS(401, "Invalid credentials"),
-    USER_SUSPENDED(403, "User suspended");
+    USER_SUSPENDED(403, "User suspended"),
+    INVALID_TOKEN(401, "Invalid token"),
+    TOKEN_EXPIRED(402, "Token is expired");
     //AUTH MODULE
 
     private final int status;
