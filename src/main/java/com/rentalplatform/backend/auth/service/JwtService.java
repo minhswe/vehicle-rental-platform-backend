@@ -17,9 +17,11 @@ import java.util.function.Function;
 
 @Service
 public class JwtService {
-    @Value("${jwt.secret}")
-    private String jwtSecretKey;
-    private final SecretKey key = Keys.hmacShaKeyFor(jwtSecretKey.getBytes(StandardCharsets.UTF_8));
+
+    private final SecretKey key;
+    public JwtService(@Value("${jwt.secret}") String jwtSecretKey) {
+        this.key = Keys.hmacShaKeyFor(jwtSecretKey.getBytes(StandardCharsets.UTF_8));
+    }
 
     @Value("${jwt.expiration}")
     private long jwtExpiration;
