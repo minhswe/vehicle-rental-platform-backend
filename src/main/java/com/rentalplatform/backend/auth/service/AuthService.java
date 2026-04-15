@@ -43,9 +43,12 @@ public class AuthService {
         user.setRefreshToken(refreshToken);
         userRepository.save(user);
         return AuthResponse.builder()
+                .refreshToken(refreshToken)
                 .accessToken(accessToken)
                 .email(user.getEmail())
                 .role(user.getRole())
+                .fullName(user.getFullName())
+                .userId(user.getId())
                 .build();
     }
 

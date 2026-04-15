@@ -1,5 +1,6 @@
 package com.rentalplatform.backend.common.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.rentalplatform.backend.common.exception.ErrorCode;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiResponse<T> {
 
     private boolean success;
