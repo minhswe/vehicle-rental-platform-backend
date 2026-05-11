@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 import com.rentalplatform.backend.user.enums.UserRole;
@@ -23,6 +23,7 @@ public class User {
 
     @Id
     @GeneratedValue
+    @Column(unique = true)
     private UUID id;
 
     @Column(unique = true, nullable = false)
@@ -46,13 +47,13 @@ public class User {
 
     private Boolean emailVerified;
 
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
-    private LocalDateTime lastLoginAt;
+    private Instant lastLoginAt;
 
-    private LocalDateTime deletedAt;
+    private Instant deletedAt;
 
     private String refreshToken;
 
