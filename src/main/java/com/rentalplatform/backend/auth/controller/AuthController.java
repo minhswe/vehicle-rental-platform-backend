@@ -6,6 +6,7 @@ import com.rentalplatform.backend.auth.dto.request.RefreshTokenRequest;
 import com.rentalplatform.backend.auth.dto.request.RegisterRequest;
 import com.rentalplatform.backend.auth.service.AuthService;
 import com.rentalplatform.backend.common.response.ApiResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,16 +37,19 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public  ResponseEntity<ApiResponse<AuthResponse>> login(@RequestBody LoginRequest request) {
-        AuthResponse response = authService.login(request);
+    public  ResponseEntity<ApiResponse<AuthResponse>> login(@RequestBody LoginRequest loginRequest,
+                                                            HttpServletRequest httpServletRequest) {
+        AuthResponse response = authService.login(loginRequest, httpServletRequest);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.success(response));
     }
 
     @PostMapping("/refresh-token")
-    public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(@RequestBody RefreshTokenRequest request) {
-        AuthResponse response = authService.refreshToken(request.getRefreshToken());
-        return  ResponseEntity.status(HttpStatus.OK)
-                .body(ApiResponse.success(response));
-    }
+        public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(@RequestBody RefreshTokenRequest request,
+            HttpServletRequest httpServiceRequest){
+            AuthResponse response = authService.refreshToken(request.getRefreshToken());
+            return  ResponseEntity.status(HttpStatus.OK)
+                    .body(ApiResponse.success(response));
+        }
+
 }
