@@ -10,6 +10,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -35,7 +38,7 @@ public class RefreshTokenService {
     public RefreshToken createRefreshToken(UUID userId, String rawToken, String device, String ipAddress) {
         RefreshToken refreshToken = new RefreshToken();
 
-        String hashedToken = passwordEncoder.encode(rawToken);
+        String hashedToken = hashToken(rawToken);
         UUID tokenId = jwtService.extractJti(rawToken);
 
         refreshToken.setUserId(userId);
@@ -48,6 +51,21 @@ public class RefreshTokenService {
                 .plusSeconds(REFRESH_TOKEN_DURATION));
 
         return refreshTokenRepository.save(refreshToken);
+    }
+
+    private String hashToken (String rawToken) {
+        try{
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(rawToken.getBytes(StandardCharsets.UTF_8));
+
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                hexString.append(String.format("%02x", b));
+            }
+            return hexString.toString();
+        }catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("SHA-256 algorithm not available", e);
+        }
     }
 
     // === VERIFY TOKEN ===
@@ -68,7 +86,7 @@ public class RefreshTokenService {
             throw new AppException(ErrorCode.TOKEN_EXPIRED);
         }
 
-        if (!passwordEncoder.matches(rawToken, refreshToken.getHashedToken())){
+        if (!hashToken(rawToken).equals(refreshToken.getHashedToken())) {
             throw new AppException(ErrorCode.INVALID_TOKEN);
         }
 

@@ -84,7 +84,13 @@ public class AuthService {
 
         //Get device and ip address
         String device = httpServletRequest.getHeader("User-Agent");
+        if (device == null || device.isBlank()) {
+            device = "Unknown device";
+        }
         String ipAddress = getClientIp(httpServletRequest);
+        if (ipAddress == null ||  ipAddress.isBlank()) {
+            ipAddress = "Unknown ip address";
+        }
 
         refreshTokenService.createRefreshToken(
                 user.getId(),

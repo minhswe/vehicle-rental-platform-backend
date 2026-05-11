@@ -42,6 +42,7 @@ public class JwtService {
 
         return Jwts.builder()
                 .subject(user.getEmail())
+                .id(UUID.randomUUID().toString())
                 .claim("role", user.getRole().name())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 15)) //15min
@@ -52,6 +53,7 @@ public class JwtService {
     public String generateRefreshToken(User user){
         return Jwts.builder()
                 .subject(user.getEmail())
+                .id(UUID.randomUUID().toString())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 7)) //7 days
                 .signWith(key)
@@ -81,6 +83,11 @@ public class JwtService {
 
     public UUID extractJti(String token){
         String jti = extractClaim(token, Claims::getId);
+
+        if (jti == null || jti.isBlank()) {
+            throw new AppException(ErrorCode.INVALID_TOKEN);
+        }
+        
         return UUID.fromString(jti);
     }
 
