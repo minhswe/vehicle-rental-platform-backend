@@ -22,7 +22,8 @@ public enum ErrorCode {
     INVALID_CREDENTIALS(401, "Invalid credentials"),
     USER_SUSPENDED(403, "User suspended"),
     INVALID_TOKEN(401, "Invalid token"),
-    TOKEN_EXPIRED(402, "Token is expired");
+    TOKEN_EXPIRED(402, "Token is expired"),
+    TOKEN_REVOKED(402, "Token is revoked");
     //AUTH MODULE
 
     private final int status;

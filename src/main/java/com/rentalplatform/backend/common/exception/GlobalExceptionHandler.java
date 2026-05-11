@@ -1,6 +1,7 @@
 package com.rentalplatform.backend.common.exception;
 
 import com.rentalplatform.backend.common.response.ApiResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -10,14 +11,22 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.stream.Collectors;
 
+import static org.aspectj.weaver.tools.cache.SimpleCacheFactory.path;
+
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     private static final Logger log  = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     // VALIDATION ERROR (DTO)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<?>> handleValidationException(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ApiResponse<?>> handleValidationException(MethodArgumentNotValidException ex, HttpServletRequest request) throws MethodArgumentNotValidException {
+        // Ignore Swagger
+        String path = request.getRequestURI();
 
+        if (path.startsWith("/v3/api-docs") || path.startsWith("/swagger-ui")) {
+            throw ex; //
+        }
         String message = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
@@ -28,9 +37,13 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ErrorCode.VALIDATION_ERROR, message));
     }
 
-    // CUSTOM BUSINESS EXCEPTION
+    //CUSTOM BUSINESS EXCEPTION
     @ExceptionHandler(BaseException.class)
-    public ResponseEntity<ApiResponse<?>> handleBaseException(BaseException ex) {
+    public ResponseEntity<ApiResponse<?>> handleBaseException(BaseException ex, HttpServletRequest request) {
+        // Ignore Swagger
+        if (path.startsWith("/v3/api-docs") || path.startsWith("/swagger-ui")) {
+            throw new RuntimeException(ex); // để Spring xử lý lại
+        }
 
         ErrorCode errorCode = ex.getErrorCode();
 
@@ -40,7 +53,16 @@ public class GlobalExceptionHandler {
 
     // UNKNOWN SYSTEM ERROR
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<?>> handleException(Exception ex) {
+    public ResponseEntity<ApiResponse<?>> handleException(Exception ex, HttpServletRequest request) throws Exception {
+
+        // Ignore Swagger
+        String path = request.getRequestURI();
+
+        if (path.startsWith("/v3/api-docs")
+                || path.startsWith("/swagger-ui")
+                || path.startsWith("/webjars")) {
+            throw ex;
+        }
 
         log.error("Unexpected error: ", ex);
 
