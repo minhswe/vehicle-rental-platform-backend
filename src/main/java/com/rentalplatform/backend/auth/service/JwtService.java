@@ -87,7 +87,7 @@ public class JwtService {
         if (jti == null || jti.isBlank()) {
             throw new AppException(ErrorCode.INVALID_TOKEN);
         }
-        
+
         return UUID.fromString(jti);
     }
 
