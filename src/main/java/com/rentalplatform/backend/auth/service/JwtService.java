@@ -27,17 +27,6 @@ public class JwtService {
     @Value("${jwt.expiration}")
     private long jwtExpiration;
 
-
-    public String generateToken(User user) {
-
-
-        return Jwts.builder()
-                .subject(user.getEmail())
-                .claim("role", user.getRole().name()).issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
-                .signWith(key).compact();
-    }
-
     public String generateAccessToken(User user){
 
         return Jwts.builder()
