@@ -4,7 +4,6 @@ import com.rentalplatform.backend.auth.entity.RefreshToken;
 import com.rentalplatform.backend.auth.repository.RefreshTokenRepository;
 import com.rentalplatform.backend.common.exception.AppException;
 import com.rentalplatform.backend.common.exception.ErrorCode;
-import com.rentalplatform.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

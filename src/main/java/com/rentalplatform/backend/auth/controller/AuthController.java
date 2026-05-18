@@ -6,7 +6,10 @@ import com.rentalplatform.backend.auth.dto.request.RefreshTokenRequest;
 import com.rentalplatform.backend.auth.dto.request.RegisterRequest;
 import com.rentalplatform.backend.auth.service.AuthService;
 import com.rentalplatform.backend.common.response.ApiResponse;
+import com.rentalplatform.backend.auth.dto.request.LogOutDeviceRequest;
+import com.rentalplatform.backend.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 
 public class AuthController {
     private final AuthService authService;
+    private final UserService userService;
 
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
@@ -42,6 +46,16 @@ public class AuthController {
         AuthResponse response = authService.login(loginRequest, httpServletRequest);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.success(response));
+    }
+
+    /**
+     * POST /users/me/logout
+     */
+    @PostMapping("/logout")
+    public void logout(
+            @Valid @RequestBody LogOutDeviceRequest request
+    ) {
+        userService.logout(request.getRefreshToken());
     }
 
     @PostMapping("/refresh-token")

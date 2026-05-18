@@ -1,10 +1,11 @@
 package com.rentalplatform.backend.user.dto.request;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
-public class UpdateUserRequest {
+@Getter
+@Setter
+public class UpdateProfileRequest {
     private String fullName;
     private String phone;
-    private String avatarUrl;
 }

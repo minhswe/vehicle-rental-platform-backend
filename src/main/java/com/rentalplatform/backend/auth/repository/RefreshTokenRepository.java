@@ -14,4 +14,5 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, UUID
     List<RefreshToken> findByUserIdAndRevokedFalseOrderByCreatedAtAsc(UUID userId);
 
     void deleteByExpiryDateBefore(Instant expiryDateBefore);
+
 }

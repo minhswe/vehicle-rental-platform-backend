@@ -55,8 +55,6 @@ public class User {
 
     private Instant deletedAt;
 
-    private String refreshToken;
-
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private Provider provider =  Provider.LOCAL;

@@ -4,7 +4,6 @@ import com.rentalplatform.backend.auth.dto.reponse.AuthResponse;
 import com.rentalplatform.backend.auth.dto.request.LoginRequest;
 import com.rentalplatform.backend.auth.dto.request.RegisterRequest;
 import com.rentalplatform.backend.auth.entity.RefreshToken;
-import com.rentalplatform.backend.auth.repository.RefreshTokenRepository;
 import com.rentalplatform.backend.common.exception.AppException;
 import com.rentalplatform.backend.common.exception.ErrorCode;
 import com.rentalplatform.backend.user.entity.User;
