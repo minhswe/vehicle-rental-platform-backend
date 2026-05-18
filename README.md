@@ -1,16 +1,16 @@
 # Vechicle Rental Platform Backend
+![Java](https://img.shields.io/badge/Java-21-blue)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen)
+### Tech stack
 
-## Overview
+- Langugage: Java
+- Framework: Spring Boot
+- Security: Srping Security & JWT
+- Database: PostgreSQL
+- Build tool: Gradle
+- API Docs: Swagger
 
-### Techstack
-
-- Java
-- Spring Boot
-- Spring Security
-- PostgreSQL
-- JWT Authentication
-
-### Main modules
+### Main Modules
 
 - Auth/ Identity
 - Vehicle
@@ -18,6 +18,12 @@
 - Payment
 - Notification
 - Review
+
+### System features
+Update...
+
+### System capabilities
+
 
 ### Architecture
 
