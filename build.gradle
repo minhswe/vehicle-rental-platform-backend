@@ -30,11 +30,18 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt-api:0.13.0")
     //Cloudinary
     implementation("com.cloudinary:cloudinary-http44:1.39.0")
+    //máptruct
+    implementation("org.mapstruct:mapstruct:1.6.3")
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+    //máptruct
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.13.0")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.13.0")
     //auto restart when there is change
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    //lombok
     compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
     runtimeOnly 'org.postgresql:postgresql'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'

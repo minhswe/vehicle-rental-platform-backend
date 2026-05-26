@@ -41,7 +41,11 @@ public enum ErrorCode {
     FILE_TOO_LARGE(400, "File size exceeds maximum allowed size"),
     INVALID_IMAGE_URL(400 , "Invalid image URL"),
     FILE_UPLOAD_FAILED(500, "Failed to upload file"),
-    FILE_DELETE_FAILED(500, "Failed to delete file");
+    FILE_DELETE_FAILED(500, "Failed to delete file"),
+
+    //ADDRESS
+    ADDRESS_OR_USER_NOT_FOUND(400, "Address or User not found"),
+    ADDRESS_NOT_FOUND(400, "Address not found");
 
     private final int status;
     private final String message;
