@@ -34,6 +34,14 @@ jobs:
         run: ./gradlew clean build -x test
 
       # Generate OpenAPI docs
+      - name: Start Spring Boot app
+        run: ./gradlew bootRun &
+      - name: Wait for application
+        run: |
+          until curl -f http://localhost:8080/v3/api-docs; do
+          echo "Waiting for app..."
+          sleep 5
+          done
       - name: Generate OpenAPI docs
         run: ./gradlew generateOpenApiDocs
 
