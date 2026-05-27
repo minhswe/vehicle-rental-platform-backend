@@ -32,3 +32,14 @@ jobs:
       # Build without run tests.
       - name: Build with Gradle
         run: ./gradlew clean build -x test
+
+      # Generate OpenAPI docs
+      - name: Generate OpenAPI docs
+        run: ./gradlew generateOpenApiDocs
+
+      # Upload OpenAPI artifact
+      - name: Upload OpenAPI docs
+        uses: actions/upload-artifact@v4
+        with:
+          name: openapi-spec
+          path: build/openapi/openapi.yaml
