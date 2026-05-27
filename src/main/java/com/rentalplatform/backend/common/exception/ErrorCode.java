@@ -38,14 +38,19 @@ public enum ErrorCode {
 
     //UPLOAD MODULE
     FILE_EMPTY(400, "File must not be empty"),
-    FILE_TOO_LARGE(400, "File size exceeds maximum allowed size"),
-    INVALID_IMAGE_URL(400 , "Invalid image URL"),
+    FILE_TOO_LARGE(413, "File size exceeds maximum allowed size"),
+    INVALID_IMAGE_URL(400, "Invalid image URL"),
     FILE_UPLOAD_FAILED(500, "Failed to upload file"),
     FILE_DELETE_FAILED(500, "Failed to delete file"),
 
     //ADDRESS
-    ADDRESS_OR_USER_NOT_FOUND(400, "Address or User not found"),
-    ADDRESS_NOT_FOUND(400, "Address not found");
+    ADDRESS_OR_USER_NOT_FOUND(404, "Address or User not found"),
+    ADDRESS_NOT_FOUND(404, "Address not found"),
+
+    //DRIVER LICENSE
+    DRIVER_LICENSE_ALREADY_EXISTS(409, "Driver license already exists"),
+    DRIVER_LICENSE_NOT_FOUND(404, "Driver license not found"),
+    DRIVER_LICENSE_NOT_REJECTED(400, "Driver license is not rejected");
 
     private final int status;
     private final String message;

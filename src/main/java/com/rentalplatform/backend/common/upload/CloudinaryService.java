@@ -26,10 +26,9 @@ public class CloudinaryService implements StorageService {
         validateFile(file);
 
         try{
-            String publicId = folder + "/" + UUID.randomUUID();
-
             Map<String, Object> options = Map.of(
-                    "public_id", publicId,
+                    "public_id", UUID.randomUUID().toString(),
+                    "asset_folder", folder,
                     "resource_type", "auto",
                     "overwrite", true
             );
