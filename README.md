@@ -32,8 +32,11 @@ Controller &rarr; Service &rarr; Repository &rarr; Database
 
 ### API documentation
 
-Swagger UI:
-`/swagger-ui/index.html`
+### Swagger UI
+http://localhost:8080/swagger-ui/index.html
+
+### OpenAPI Specification
+docs/openapi.json
 
 ### Database design
 
