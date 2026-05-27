@@ -2,11 +2,16 @@ package com.rentalplatform.backend.config.swagger;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
 
 @Configuration
 public class SwaggerConfig {
@@ -19,8 +24,33 @@ public class SwaggerConfig {
                 .info(new Info()
                               .title("Vehicle Rental Platform Backend")
                               .version("1.0")
-                              .description("API documentation")
+                              .description("""
+            REST API documentation for Vehicle Rental Platform.
+
+            Features:
+            - JWT Authentication
+            - Refresh Token
+            - User Profile
+            - Address Management
+            - Driver License Verification
+            - Vehicle Rental
+            """)
+                              .contact(
+                                      new Contact()
+                                              .name("MR.MINH PHAM")
+                                              .email("quangminhswe@gmail.com")
+                              )
+                              .license(
+                                      new License()
+                                              .name("MIT License")
+                              )
+
                 )
+                .servers(List.of(
+                        new Server()
+                                .url("http://localhost:8080")
+                                .description("Local Development")
+                ))
                 //apply security for all api
                 .addSecurityItem(
                         new SecurityRequirement()
@@ -36,6 +66,7 @@ public class SwaggerConfig {
                                                 .type(SecurityScheme.Type.HTTP)
                                                 .scheme("bearer")
                                                 .bearerFormat("JWT")
+                                                .description("Input JWT access token")
                                 )
                 );
 
