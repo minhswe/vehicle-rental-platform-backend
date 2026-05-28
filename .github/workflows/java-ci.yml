@@ -37,7 +37,7 @@ jobs:
 
       # Generate OpenAPI docs
       - name: Start Spring Boot app
-        run: ./gradlew bootRun
+        run: ./gradlew bootRun > app.log 2>&1 &
       - name: Wait for application
         run: |
           for i in {1..12}; do
