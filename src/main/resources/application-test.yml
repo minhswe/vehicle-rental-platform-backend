@@ -14,7 +14,8 @@ spring:
       enabled: true
 
 jwt:
-  secret: test-secret-key
+  secret: mySuperSecretKeyForTestingOnly123456789
+  expiration: 86400000
 
 cloudinary:
   cloud-name: test
