@@ -36,29 +36,17 @@ jobs:
         run: ./gradlew clean build -x test
 
       # Generate OpenAPI docs
-      - name: Start Spring Boot app
-        run: ./gradlew bootRun > app.log 2>&1 &
-      - name: Wait for application
-        run: |
-          for i in {1..12}; do
-            if curl -f http://localhost:8080/v3/api-docs; then
-              echo "Application is ready!"
-              exit 0
-            fi
-          
-            echo "Waiting for app..."
-            sleep 5
-          done
-          
-          echo "Application failed to start"
-          exit 1
-
       - name: Generate OpenAPI docs
         run: ./gradlew generateOpenApiDocs
 
-      # Upload OpenAPI artifact
+    # Debug generated files
+      - name: List generated files
+        run: |
+          find build -type f | grep openapi
+
+    # Upload artifact
       - name: Upload OpenAPI docs
         uses: actions/upload-artifact@v4
         with:
           name: openapi-spec
-          path: build/openapi/openapi.yaml
+          path: build/openapi.json
