@@ -11,6 +11,8 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    env:
+      SPRING_PROFILES_ACTIVE: test
 
     steps:
       # Get source code
@@ -35,13 +37,22 @@ jobs:
 
       # Generate OpenAPI docs
       - name: Start Spring Boot app
-        run: ./gradlew bootRun &
+        run: ./gradlew bootRun
       - name: Wait for application
         run: |
-          until curl -f http://localhost:8080/v3/api-docs; do
-          echo "Waiting for app..."
-          sleep 5
+          for i in {1..12}; do
+            if curl -f http://localhost:8080/v3/api-docs; then
+              echo "Application is ready!"
+              exit 0
+            fi
+          
+            echo "Waiting for app..."
+            sleep 5
           done
+          
+          echo "Application failed to start"
+          exit 1
+
       - name: Generate OpenAPI docs
         run: ./gradlew generateOpenApiDocs
 
