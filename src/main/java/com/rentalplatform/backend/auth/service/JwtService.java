@@ -1,5 +1,6 @@
 package com.rentalplatform.backend.auth.service;
 
+import com.rentalplatform.backend.auth.security.CustomUserPrincipal;
 import com.rentalplatform.backend.common.exception.AppException;
 import com.rentalplatform.backend.common.exception.ErrorCode;
 import com.rentalplatform.backend.user.entity.User;
@@ -20,57 +21,60 @@ import java.util.function.Function;
 public class JwtService {
 
     private final SecretKey key;
+
     public JwtService(@Value("${jwt.secret}") String jwtSecretKey) {
         this.key = Keys.hmacShaKeyFor(jwtSecretKey.getBytes(StandardCharsets.UTF_8));
     }
 
     @Value("${jwt.expiration}")
-    private long jwtExpiration;
 
-    public String generateAccessToken(User user){
+    public String generateAccessToken(CustomUserPrincipal principal) {
 
         return Jwts.builder()
-                .subject(user.getEmail())
-                .id(UUID.randomUUID().toString())
-                .claim("role", user.getRole().name())
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 15)) //15min
-                .signWith(key)
-                .compact();
+                   .subject(principal.getEmail())
+                   .id(UUID.randomUUID()
+                           .toString())
+                   .claim("role", principal.getRole()
+                                           .name())
+                   .issuedAt(new Date())
+                   .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 15)) //15min
+                   .signWith(key)
+                   .compact();
     }
 
-    public String generateRefreshToken(User user){
+    public String generateRefreshToken(CustomUserPrincipal principal) {
         return Jwts.builder()
-                .subject(user.getEmail())
-                .id(UUID.randomUUID().toString())
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 7)) //7 days
-                .signWith(key)
-                .compact();
+                   .subject(principal.getEmail())
+                   .id(UUID.randomUUID()
+                           .toString())
+                   .issuedAt(new Date())
+                   .expiration(new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 7)) //7 days
+                   .signWith(key)
+                   .compact();
     }
 
     private Claims extractAllClaims(String token) {
         try {
             return Jwts.parser()
-                    .verifyWith(key)
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload();
+                       .verifyWith(key)
+                       .build()
+                       .parseSignedClaims(token)
+                       .getPayload();
         } catch (Exception e) {
             throw new AppException(ErrorCode.INVALID_TOKEN);
         }
     }
 
-    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver){
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
 
-    public String extractEmail(String token){
+    public String extractEmail(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
-    public UUID extractJti(String token){
+    public UUID extractJti(String token) {
         String jti = extractClaim(token, Claims::getId);
 
         if (jti == null || jti.isBlank()) {
@@ -80,7 +84,7 @@ public class JwtService {
         return UUID.fromString(jti);
     }
 
-    public boolean isTokenExpired(String token){
+    public boolean isTokenExpired(String token) {
         try {
             Date expiration = extractClaim(token, Claims::getExpiration);
             return expiration.before(new Date());
@@ -89,11 +93,11 @@ public class JwtService {
         }
     }
 
-    public boolean isTokenValid(String token, User user){
+    public boolean isTokenValid(String token, User user) {
         try {
             final String email = extractEmail(token);
             return email.equals(user.getEmail()) && !isTokenExpired(token);
-        }catch (Exception e){
+        } catch (Exception e) {
             return false;
         }
     }
