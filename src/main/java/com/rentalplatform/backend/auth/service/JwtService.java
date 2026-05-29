@@ -27,6 +27,7 @@ public class JwtService {
     }
 
     @Value("${jwt.expiration}")
+    private long jwtExpiration;
 
     public String generateAccessToken(CustomUserPrincipal principal) {
 
