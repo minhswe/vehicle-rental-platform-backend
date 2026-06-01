@@ -62,11 +62,12 @@
 
 Coverage Summary:
 
-| Module | Line Coverage |
-|----------|----------|
-| AuthService | 98% |
-| JwtService | 95% |
-| RefreshTokenService | 93% |
+| Module              | Line Coverage |
+|---------------------|---------------|
+| Authentication      | 95%           |
+| File upload         | 100%          |
+
+
 
 Generate Coverage Report
 
