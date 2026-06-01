@@ -9,6 +9,8 @@ import org.mapstruct.*;
 @Mapper(componentModel = "spring")
 public interface AddressMapper {
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "userId", ignore = true)
 
     Address toEntity(CreateAddressRequest request);
 

@@ -62,7 +62,7 @@ public class DriverLicenseServiceImpl implements DriverLicenseService {
 
         driverLicense.setExpiryDate(expiryDate);
 
-        driverLicense.setVerificationStatus(
+        driverLicense.setLicenseVerificationStatus(
                 LicenseVerificationStatus.PENDING
         );
 
@@ -113,7 +113,7 @@ public class DriverLicenseServiceImpl implements DriverLicenseService {
         }
 
         // Update status back to pending
-        driverLicense.setVerificationStatus(
+        driverLicense.setLicenseVerificationStatus(
                 LicenseVerificationStatus.PENDING
         );
 
@@ -140,7 +140,7 @@ public class DriverLicenseServiceImpl implements DriverLicenseService {
     public DriverLicenseResponse resubmit(UUID userId) {
         DriverLicense driverLicense = findLicense(userId);
 
-        if (driverLicense.getVerificationStatus()
+        if (driverLicense.getLicenseVerificationStatus()
             != LicenseVerificationStatus.REJECTED) {
 
             throw new AppException(
@@ -148,7 +148,7 @@ public class DriverLicenseServiceImpl implements DriverLicenseService {
             );
         }
 
-        driverLicense.setVerificationStatus(
+        driverLicense.setLicenseVerificationStatus(
                 LicenseVerificationStatus.PENDING
         );
 

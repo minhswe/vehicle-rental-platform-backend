@@ -37,7 +37,7 @@ public class DriverLicense {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "verification_status", nullable = false)
-    private LicenseVerificationStatus verificationStatus = LicenseVerificationStatus.PENDING;
+    private LicenseVerificationStatus licenseVerificationStatus = LicenseVerificationStatus.PENDING;
 
     @Column(name = "verified_at")
     private Instant verifiedAt;
