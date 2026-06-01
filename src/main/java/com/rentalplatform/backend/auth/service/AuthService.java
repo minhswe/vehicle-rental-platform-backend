@@ -143,7 +143,6 @@ public class AuthService {
             throw new AppException(ErrorCode.USER_SUSPENDED);
         }
 
-
         String newAccessToken =
                 jwtService.generateAccessToken(principal);
 

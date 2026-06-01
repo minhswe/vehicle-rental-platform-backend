@@ -1,8 +1,11 @@
-# Vechicle Rental Platform Backend
+# Vehicle Rental Platform Backend
 ![Java](https://img.shields.io/badge/Java-21-blue)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.x-brightgreen)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue)
+![Neon](https://img.shields.io/badge/Neon-Cloud_Database-brightgreen)
+![Cloudinary](https://img.shields.io/badge/Cloudinary-Media_Storage-blue)
 
-### Current Progress
+## Current Progress
 
 | Module | Status |
 |----------|----------|
@@ -13,16 +16,17 @@
 | Notification | ⏳ Planned |
 | Review | ⏳ Planned |
 
-### Tech stack
+## Tech stack
 
 - Language: Java
 - Framework: Spring Boot
-- Security: Srping Security & JWT
-- Database: PostgreSQL
+- Security: Spring Security & JWT
+- Database: PostgreSQL (Neon Cloud)
+- Media Storage: Cloudinary
 - Build tool: Gradle
 - API Docs: Swagger
 
-### Main Modules
+## Main Modules
 
 - Auth/ Identity
 - Vehicle
@@ -31,33 +35,34 @@
 - Notification
 - Review
 
-### System features
-- Global exception handling
+## System features (Detailed in docs/)
+### Authentication & Security
 - JWT Authentication
 - Refresh Token Rotation
-- Role-Based Access Control (ADMIN/CUSTOMER)
+- Spring Security Integration
 - BCrypt Password Encryption
 - Custom UserDetailsService
 - Custom UserPrincipal
-- Stateless Session Management
+- Role-Based Access Control (RBAC)
 - Device & IP Tracking
-- Spring Security Integration
-- Updating...
-- 
+- Stateless Session Management
+### Updating...
+
 ### DevOps
 
 - GitHub Actions CI
-- Automated Build (already) & Test (not yet)
+- Automated Build & Test
 - OpenAPI Specification Generation
 - Artifact Upload
 
+### Unit test
+- JUnit 5
 
-### Architecture
-
-Layered
-Controller → Service → Repository → PostgreSQL
-
-### API documentation
+## Architecture
+```
+Client → Spring Security → Controller → Service → Repository → PostgreSQL
+```
+## API documentation
 
 - Swagger UI: http://localhost:8080/swagger-ui/index.html
 
@@ -65,30 +70,6 @@ Controller → Service → Repository → PostgreSQL
 
 - Generated automatically via GitHub Actions.
 
-### Database design
+## Database design
 
 See here in [dbdiagram](https://dbdiagram.io/d/Vehicle-rental-platform-69cb4b4cfb2db18e3b41ae5c)
-
-### Security Architecture
-
-```text
-Login Request
-      ↓
-AuthenticationManager
-      ↓
-DaoAuthenticationProvider
-      ↓
-CustomUserDetailsService
-      ↓
-UserRepository
-      ↓
-CustomUserPrincipal
-      ↓
-BCryptPasswordEncoder
-      ↓
-Authenticated User
-      ↓
-JWT Access Token
-      ↓
-Refresh Token Rotation
-
