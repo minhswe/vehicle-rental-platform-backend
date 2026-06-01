@@ -4,58 +4,51 @@ import com.rentalplatform.backend.user.entity.User;
 import com.rentalplatform.backend.user.enums.UserRole;
 import com.rentalplatform.backend.user.enums.UserStatus;
 
+import jakarta.annotation.Nonnull;
 import lombok.Getter;
-import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
+
 import java.util.UUID;
 
 @Getter
 
 public class CustomUserPrincipal implements UserDetails {
 
-    private final User user;
+    private final UUID id;
+    private final String email;
+    private final String password;
+    private final UserRole role;
+    private final UserStatus status;
 
     public CustomUserPrincipal(User user) {
-        this.user = Objects.requireNonNull(user);
-
-
+        this.id = user.getId();
+        this.email = user.getEmail();
+        this.password = user.getPassword();
+        this.role = user.getRole();
+        this.status = user.getStatus();
     }
 
-
-    public UUID getId() {
-        return user.getId();
-    }
-
-    public String getEmail() {
-        return user.getEmail();
-    }
-
-    public UserRole getRole() {
-        return user.getRole();
-    }
 
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
+    public @Nonnull  Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(
-                new SimpleGrantedAuthority("ROLE_" + user.getRole()
-                                                         .name())
+                new SimpleGrantedAuthority("ROLE_" + role.name())
         );
     }
 
     @Override
-    public @Nullable String getPassword() {
-        return user.getPassword();
+    public String getPassword() {
+        return password;
     }
 
     @Override
-    public String getUsername() {
-        return getEmail();
+    public @Nonnull String getUsername() {
+        return email;
     }
 
     @Override
@@ -65,7 +58,7 @@ public class CustomUserPrincipal implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return UserDetails.super.isAccountNonLocked();
+        return status != UserStatus.SUSPEND;
     }
 
     @Override
@@ -75,6 +68,10 @@ public class CustomUserPrincipal implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return user.getStatus() == UserStatus.ACTIVE;
+        return status == UserStatus.ACTIVE;
+    }
+
+    public boolean isAdmin() {
+        return role == UserRole.ADMIN;
     }
 }

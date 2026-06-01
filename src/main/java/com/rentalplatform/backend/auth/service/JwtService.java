@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Date;
 import java.util.UUID;
 import java.util.function.Function;
@@ -26,8 +27,11 @@ public class JwtService {
         this.key = Keys.hmacShaKeyFor(jwtSecretKey.getBytes(StandardCharsets.UTF_8));
     }
 
-    @Value("${jwt.expiration}")
-    private long jwtExpiration;
+    @Value("${jwt.access-token-expiration}")
+    private Duration accessTokenExpiration;
+
+    @Value("${jwt.refresh-token-expiration}")
+    private Duration refreshTokenExpiration;
 
     public String generateAccessToken(CustomUserPrincipal principal) {
 
@@ -35,10 +39,11 @@ public class JwtService {
                    .subject(principal.getEmail())
                    .id(UUID.randomUUID()
                            .toString())
+                   .claim("uid", principal.getId())
                    .claim("role", principal.getRole()
                                            .name())
                    .issuedAt(new Date())
-                   .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 15)) //15min
+                   .expiration(new Date(System.currentTimeMillis() + accessTokenExpiration.toMillis())) //15min
                    .signWith(key)
                    .compact();
     }
@@ -48,10 +53,20 @@ public class JwtService {
                    .subject(principal.getEmail())
                    .id(UUID.randomUUID()
                            .toString())
+                   .claim("uid", principal.getId())
                    .issuedAt(new Date())
-                   .expiration(new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 7)) //7 days
+                   .expiration(new Date(System.currentTimeMillis() + refreshTokenExpiration.toMillis())) //7 days
                    .signWith(key)
                    .compact();
+    }
+
+    public UUID extractUserId(String token) {
+        String userId = extractClaim(
+                token,
+                claims -> claims.get("uid", String.class)
+        );
+
+        return UUID.fromString(userId);
     }
 
     private Claims extractAllClaims(String token) {

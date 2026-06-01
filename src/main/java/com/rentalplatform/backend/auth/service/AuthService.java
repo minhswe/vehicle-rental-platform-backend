@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.time.Instant;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -77,10 +78,12 @@ public class AuthService {
                 );
 
         CustomUserPrincipal principal =
-                (CustomUserPrincipal) authentication.getPrincipal();
+                (CustomUserPrincipal) Objects.requireNonNull(
+                        authentication.getPrincipal()
+                );
 
-
-        User user = principal.getUser();
+        User user = userRepository.findById(principal.getId())
+                                  .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
 
         String accessToken = jwtService.generateAccessToken(principal);
@@ -133,13 +136,13 @@ public class AuthService {
         User user = userRepository.findById(storedToken.getUserId())
                                   .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-        if (user.getStatus() == UserStatus.SUSPEND) {
+        CustomUserPrincipal principal =
+                new CustomUserPrincipal(user);
+
+        if (!principal.isEnabled()) {
             throw new AppException(ErrorCode.USER_SUSPENDED);
         }
 
-        //Generate new token
-        CustomUserPrincipal principal =
-                new CustomUserPrincipal(user);
 
         String newAccessToken =
                 jwtService.generateAccessToken(principal);
