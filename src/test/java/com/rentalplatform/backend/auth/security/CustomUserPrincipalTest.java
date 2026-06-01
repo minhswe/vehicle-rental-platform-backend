@@ -19,7 +19,7 @@ class CustomUserPrincipalTest {
         User user = new User();
 
         user.setId(UUID.randomUUID());
-        user.setEmail("test@gmail.com");
+        user.setEmail("admin@gmail.com");
         user.setPassword("123");
         user.setRole(role);
         user.setStatus(status);

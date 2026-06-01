@@ -24,7 +24,7 @@ public interface DriverLicenseRepository extends JpaRepository<DriverLicense, UU
     /**
      * Find all licenses by verification status
      */
-    List<DriverLicense> findByVerificationStatus(
+    List<DriverLicense> findByLicenseVerificationStatus(
             LicenseVerificationStatus licenseVerificationStatus
     );
 
