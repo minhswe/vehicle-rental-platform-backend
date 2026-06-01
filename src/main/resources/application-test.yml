@@ -15,7 +15,8 @@ spring:
 
 jwt:
   secret: mySuperSecretKeyForTestingOnly123456789
-  expiration: 86400000
+  access-token-expiration: 15m
+  refresh-token-expiration: 7d
 
 cloudinary:
   cloud-name: test
