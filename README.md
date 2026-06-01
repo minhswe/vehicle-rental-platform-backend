@@ -55,8 +55,18 @@
 - OpenAPI Specification Generation
 - Artifact Upload
 
-### Unit test
+### Testing
 - JUnit 5
+- Mockito
+- Jacoco
+
+Current Coverage Status: 34% 
+
+Generate Coverage Report
+
+```bash
+./gradlew clean test jacocoTestReport
+````
 
 ## Architecture
 ```
