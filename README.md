@@ -60,7 +60,13 @@
 - Mockito
 - Jacoco
 
-Current Coverage Status: 34% 
+Coverage Summary:
+
+| Module | Line Coverage |
+|----------|----------|
+| AuthService | 98% |
+| JwtService | 95% |
+| RefreshTokenService | 93% |
 
 Generate Coverage Report
 
