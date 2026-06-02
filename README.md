@@ -62,12 +62,11 @@
 
 Coverage Summary:
 
-| Module              | Line Coverage |
-|---------------------|---------------|
-| Authentication      | 95%           |
-| File upload         | 100%          |
-
-
+| Module         | Line Coverage |
+|----------------|---------------|
+| Authentication | 95%           |
+| File upload    | 100%          |
+| User           | 96%           |
 
 Generate Coverage Report
 
