@@ -67,6 +67,7 @@ Coverage Summary:
 | Authentication | 95%           |
 | File upload    | 100%          |
 | User           | 96%           |
+| Owner          | 100%          |
 
 Generate Coverage Report
 
