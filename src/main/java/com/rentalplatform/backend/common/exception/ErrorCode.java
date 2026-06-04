@@ -50,7 +50,11 @@ public enum ErrorCode {
     //DRIVER LICENSE
     DRIVER_LICENSE_ALREADY_EXISTS(409, "Driver license already exists"),
     DRIVER_LICENSE_NOT_FOUND(404, "Driver license not found"),
-    DRIVER_LICENSE_NOT_REJECTED(400, "Driver license is not rejected");
+    DRIVER_LICENSE_NOT_REJECTED(400, "Driver license is not rejected"),
+
+    //OWNER
+    OWNER_ALREADY_EXISTS(409, "Owner already exists"),
+    OWNER_NOT_FOUND(404, "Owner not found");
 
     private final int status;
     private final String message;
