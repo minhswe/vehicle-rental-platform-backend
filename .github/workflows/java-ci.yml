@@ -45,11 +45,11 @@ jobs:
     # Debug generated files
       - name: List generated files
         run: |
-          find build -type f | grep openapi
+          find docs -type f | grep openapi
 
     # Upload artifact
       - name: Upload OpenAPI docs
         uses: actions/upload-artifact@v7
         with:
           name: openapi-spec
-          path: build/openapi.json
+          path: docs/openapi/openapi.json

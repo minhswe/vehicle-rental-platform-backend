@@ -81,7 +81,7 @@ Client → Spring Security → Controller → Service → Repository → Postgre
 ```
 ## API documentation
 
-- Swagger UI: http://localhost:8080/swagger-ui/index.html
+- Swagger UI: https://minhswe.github.io/vehicle-rental-platform-backend/
 
 - OpenAPI Specification: docs/openapi/openapi.json
 
