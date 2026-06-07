@@ -1,0 +1,51 @@
+name: Publish OpenAPI Docs
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  publish-openapi:
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Grant Execute Permission
+        run: chmod +x gradlew
+
+      - name: Generate OpenAPI
+        run: ./gradlew generateOpenApiDocs
+
+      - name: Prepare site
+        run: |
+          mkdir site
+          cp build/openapi.json site/openapi.json
+          cp docs/index.html site/index.html
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
