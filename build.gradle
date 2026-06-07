@@ -45,27 +45,27 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    //Swagger
+    //================================== OpenAPI (Swagger)  ==================================
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2'
     //PostgreSQL
-    //JJWT
+    //================================== JWT  ==================================
     implementation("io.jsonwebtoken:jjwt-api:0.13.0")
-    //Cloudinary
-    implementation("com.cloudinary:cloudinary-http44:1.39.0")
-    //máptruct
+    //================================== Cloudinary  ==================================
+    implementation("com.cloudinary:cloudinary-http5:2.4.0")
+    //================================== Map struct  ==================================
     implementation("org.mapstruct:mapstruct:1.6.3")
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
-    //máptruct
+    //================================== Map struct  ==================================
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.13.0")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.13.0")
     //auto restart when there is change
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    //lombok
+    //================================== Lombok  ==================================
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
+    //================================== Lombok  ==================================
     runtimeOnly 'org.postgresql:postgresql'
-    annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -77,6 +77,6 @@ dependencies {
     runtimeOnly 'com.h2database:h2'
 }
 
-tasks.named('test') {
+tasks.withType(Test).configureEach {
     useJUnitPlatform()
 }

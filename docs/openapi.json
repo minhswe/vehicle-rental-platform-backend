@@ -24,6 +24,163 @@
     }
   ],
   "paths": {
+    "/vehicles/{vehicleId}": {
+      "get": {
+        "tags": [
+          "vehicle-controller"
+        ],
+        "operationId": "getVehicleDetail",
+        "parameters": [
+          {
+            "name": "vehicleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVehicleResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "vehicle-controller"
+        ],
+        "operationId": "updateVehicle",
+        "parameters": [
+          {
+            "name": "vehicleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateVehicleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVehicleResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "vehicle-controller"
+        ],
+        "operationId": "deleteVehicle",
+        "parameters": [
+          {
+            "name": "vehicleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vehicles": {
+      "get": {
+        "tags": [
+          "vehicle-controller"
+        ],
+        "operationId": "getAvailableVehicles",
+        "parameters": [
+          {
+            "name": "pageable",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePageVehicleResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "vehicle-controller"
+        ],
+        "operationId": "createVehicle",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVehicleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVehicleResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/users/me/driver-license": {
       "get": {
         "tags": [
@@ -589,6 +746,67 @@
         }
       }
     },
+    "/vehicles/my": {
+      "get": {
+        "tags": [
+          "vehicle-controller"
+        ],
+        "operationId": "getOwnerVehicles",
+        "parameters": [
+          {
+            "name": "pageable",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePageVehicleResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vehicles/my/{vehicleId}": {
+      "get": {
+        "tags": [
+          "vehicle-controller"
+        ],
+        "operationId": "getOwnerVehicleDetail",
+        "parameters": [
+          {
+            "name": "vehicleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVehicleResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/users/me/addresses/default": {
       "get": {
         "tags": [
@@ -632,6 +850,259 @@
   },
   "components": {
     "schemas": {
+      "UpdateVehicleRequest": {
+        "type": "object",
+        "properties": {
+          "brand": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "year": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "seatCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fuelType": {
+            "type": "string",
+            "enum": [
+              "PETROL",
+              "DIESEL",
+              "ELECTRIC",
+              "HYBRID"
+            ]
+          },
+          "transmission": {
+            "type": "string",
+            "enum": [
+              "MANUAL",
+              "AUTOMATIC"
+            ]
+          },
+          "mileage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
+            "type": "string"
+          },
+          "pricePerDay": {
+            "type": "number"
+          },
+          "depositAmount": {
+            "type": "number"
+          },
+          "licensePlate": {
+            "type": "string"
+          }
+        }
+      },
+      "ApiResponseVehicleResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/VehicleResponse"
+          },
+          "message": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "errorCode": {
+            "type": "string",
+            "enum": [
+              "VALIDATION_ERROR",
+              "BAD_REQUEST",
+              "UNAUTHORIZED",
+              "FORBIDDEN",
+              "NOT_FOUND",
+              "INTERNAL_ERROR",
+              "USER_NOT_FOUND",
+              "EMAIL_ALREADY_EXISTS",
+              "PHONE_ALREADY_EXISTS",
+              "USER_ALREADY_EXISTS",
+              "INVALID_CREDENTIALS",
+              "USER_SUSPENDED",
+              "INVALID_TOKEN",
+              "TOKEN_EXPIRED",
+              "TOKEN_REVOKED",
+              "PASSWORDS_DO_NOT_MATCH",
+              "CURRENT_PASSWORD_IS_INCORRECT",
+              "NEW_PASSWORD_MUST_BE_DIFFERENT_FROM_CURRENT_PASSWORD",
+              "PASSWORD_CHANGE_NOT_ALLOWED_FOR_SOCIAL_ACCOUNT",
+              "FILE_EMPTY",
+              "FILE_TOO_LARGE",
+              "INVALID_IMAGE_URL",
+              "FILE_UPLOAD_FAILED",
+              "FILE_DELETE_FAILED",
+              "ADDRESS_OR_USER_NOT_FOUND",
+              "ADDRESS_NOT_FOUND",
+              "DRIVER_LICENSE_ALREADY_EXISTS",
+              "DRIVER_LICENSE_NOT_FOUND",
+              "DRIVER_LICENSE_NOT_REJECTED",
+              "OWNER_ALREADY_EXISTS",
+              "OWNER_NOT_FOUND",
+              "VEHICLE_NOT_FOUND",
+              "VEHICLE_ACCESS_DENIED",
+              "LICENSE_PLATE_ALREADY_EXISTS",
+              "INVALID_VEHICLE_YEAR",
+              "INVALID_LICENSE_PLATE",
+              "VEHICLE_NOT_EDITABLE",
+              "VEHICLE_NOT_DELETABLE"
+            ]
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "VehicleResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ownerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "brand": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "year": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "licensePlate": {
+            "type": "string"
+          },
+          "seatCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fuelType": {
+            "type": "string",
+            "enum": [
+              "PETROL",
+              "DIESEL",
+              "ELECTRIC",
+              "HYBRID"
+            ]
+          },
+          "transmission": {
+            "type": "string",
+            "enum": [
+              "MANUAL",
+              "AUTOMATIC"
+            ]
+          },
+          "mileage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
+            "type": "string"
+          },
+          "pricePerDay": {
+            "type": "number"
+          },
+          "depositAmount": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "AVAILABLE",
+              "UNAVAILABLE",
+              "MAINTENANCE",
+              "DELETED",
+              "RENTED"
+            ]
+          }
+        }
+      },
+      "CreateVehicleRequest": {
+        "type": "object",
+        "properties": {
+          "brand": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 0
+          },
+          "model": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 0
+          },
+          "year": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1990
+          },
+          "licensePlate": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 0
+          },
+          "seatCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fuelType": {
+            "type": "string",
+            "enum": [
+              "PETROL",
+              "DIESEL",
+              "ELECTRIC",
+              "HYBRID"
+            ]
+          },
+          "transmission": {
+            "type": "string",
+            "enum": [
+              "MANUAL",
+              "AUTOMATIC"
+            ]
+          },
+          "mileage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 0
+          },
+          "pricePerDay": {
+            "type": "number"
+          },
+          "depositAmount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "brand",
+          "depositAmount",
+          "licensePlate",
+          "mileage",
+          "model",
+          "pricePerDay",
+          "year"
+        ]
+      },
       "DriverLicenseResponse": {
         "type": "object",
         "properties": {
@@ -831,7 +1302,14 @@
               "DRIVER_LICENSE_NOT_FOUND",
               "DRIVER_LICENSE_NOT_REJECTED",
               "OWNER_ALREADY_EXISTS",
-              "OWNER_NOT_FOUND"
+              "OWNER_NOT_FOUND",
+              "VEHICLE_NOT_FOUND",
+              "VEHICLE_ACCESS_DENIED",
+              "LICENSE_PLATE_ALREADY_EXISTS",
+              "INVALID_VEHICLE_YEAR",
+              "INVALID_LICENSE_PLATE",
+              "VEHICLE_NOT_EDITABLE",
+              "VEHICLE_NOT_DELETABLE"
             ]
           },
           "timestamp": {
@@ -943,7 +1421,14 @@
               "DRIVER_LICENSE_NOT_FOUND",
               "DRIVER_LICENSE_NOT_REJECTED",
               "OWNER_ALREADY_EXISTS",
-              "OWNER_NOT_FOUND"
+              "OWNER_NOT_FOUND",
+              "VEHICLE_NOT_FOUND",
+              "VEHICLE_ACCESS_DENIED",
+              "LICENSE_PLATE_ALREADY_EXISTS",
+              "INVALID_VEHICLE_YEAR",
+              "INVALID_LICENSE_PLATE",
+              "VEHICLE_NOT_EDITABLE",
+              "VEHICLE_NOT_DELETABLE"
             ]
           },
           "timestamp": {
@@ -1071,6 +1556,239 @@
           },
           "default": {
             "type": "boolean"
+          }
+        }
+      },
+      "Pageable": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1
+          },
+          "sort": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ApiResponsePageVehicleResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PageVehicleResponse"
+          },
+          "message": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "errorCode": {
+            "type": "string",
+            "enum": [
+              "VALIDATION_ERROR",
+              "BAD_REQUEST",
+              "UNAUTHORIZED",
+              "FORBIDDEN",
+              "NOT_FOUND",
+              "INTERNAL_ERROR",
+              "USER_NOT_FOUND",
+              "EMAIL_ALREADY_EXISTS",
+              "PHONE_ALREADY_EXISTS",
+              "USER_ALREADY_EXISTS",
+              "INVALID_CREDENTIALS",
+              "USER_SUSPENDED",
+              "INVALID_TOKEN",
+              "TOKEN_EXPIRED",
+              "TOKEN_REVOKED",
+              "PASSWORDS_DO_NOT_MATCH",
+              "CURRENT_PASSWORD_IS_INCORRECT",
+              "NEW_PASSWORD_MUST_BE_DIFFERENT_FROM_CURRENT_PASSWORD",
+              "PASSWORD_CHANGE_NOT_ALLOWED_FOR_SOCIAL_ACCOUNT",
+              "FILE_EMPTY",
+              "FILE_TOO_LARGE",
+              "INVALID_IMAGE_URL",
+              "FILE_UPLOAD_FAILED",
+              "FILE_DELETE_FAILED",
+              "ADDRESS_OR_USER_NOT_FOUND",
+              "ADDRESS_NOT_FOUND",
+              "DRIVER_LICENSE_ALREADY_EXISTS",
+              "DRIVER_LICENSE_NOT_FOUND",
+              "DRIVER_LICENSE_NOT_REJECTED",
+              "OWNER_ALREADY_EXISTS",
+              "OWNER_NOT_FOUND",
+              "VEHICLE_NOT_FOUND",
+              "VEHICLE_ACCESS_DENIED",
+              "LICENSE_PLATE_ALREADY_EXISTS",
+              "INVALID_VEHICLE_YEAR",
+              "INVALID_LICENSE_PLATE",
+              "VEHICLE_NOT_EDITABLE",
+              "VEHICLE_NOT_DELETABLE"
+            ]
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PageVehicleResponse": {
+        "type": "object",
+        "properties": {
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VehicleResponse"
+            }
+          },
+          "number": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sort": {
+            "$ref": "#/components/schemas/SortObject"
+          },
+          "first": {
+            "type": "boolean"
+          },
+          "last": {
+            "type": "boolean"
+          },
+          "numberOfElements": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageable": {
+            "$ref": "#/components/schemas/PageableObject"
+          },
+          "empty": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PageableObject": {
+        "type": "object",
+        "properties": {
+          "offset": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "sort": {
+            "$ref": "#/components/schemas/SortObject"
+          },
+          "paged": {
+            "type": "boolean"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "unpaged": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SortObject": {
+        "type": "object",
+        "properties": {
+          "empty": {
+            "type": "boolean"
+          },
+          "sorted": {
+            "type": "boolean"
+          },
+          "unsorted": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ApiResponseVoid": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {},
+          "message": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "errorCode": {
+            "type": "string",
+            "enum": [
+              "VALIDATION_ERROR",
+              "BAD_REQUEST",
+              "UNAUTHORIZED",
+              "FORBIDDEN",
+              "NOT_FOUND",
+              "INTERNAL_ERROR",
+              "USER_NOT_FOUND",
+              "EMAIL_ALREADY_EXISTS",
+              "PHONE_ALREADY_EXISTS",
+              "USER_ALREADY_EXISTS",
+              "INVALID_CREDENTIALS",
+              "USER_SUSPENDED",
+              "INVALID_TOKEN",
+              "TOKEN_EXPIRED",
+              "TOKEN_REVOKED",
+              "PASSWORDS_DO_NOT_MATCH",
+              "CURRENT_PASSWORD_IS_INCORRECT",
+              "NEW_PASSWORD_MUST_BE_DIFFERENT_FROM_CURRENT_PASSWORD",
+              "PASSWORD_CHANGE_NOT_ALLOWED_FOR_SOCIAL_ACCOUNT",
+              "FILE_EMPTY",
+              "FILE_TOO_LARGE",
+              "INVALID_IMAGE_URL",
+              "FILE_UPLOAD_FAILED",
+              "FILE_DELETE_FAILED",
+              "ADDRESS_OR_USER_NOT_FOUND",
+              "ADDRESS_NOT_FOUND",
+              "DRIVER_LICENSE_ALREADY_EXISTS",
+              "DRIVER_LICENSE_NOT_FOUND",
+              "DRIVER_LICENSE_NOT_REJECTED",
+              "OWNER_ALREADY_EXISTS",
+              "OWNER_NOT_FOUND",
+              "VEHICLE_NOT_FOUND",
+              "VEHICLE_ACCESS_DENIED",
+              "LICENSE_PLATE_ALREADY_EXISTS",
+              "INVALID_VEHICLE_YEAR",
+              "INVALID_LICENSE_PLATE",
+              "VEHICLE_NOT_EDITABLE",
+              "VEHICLE_NOT_DELETABLE"
+            ]
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       }

@@ -1,4 +1,4 @@
-# Testing documentation
+# Testing
 
 ## Authentication Module
 
@@ -22,3 +22,8 @@
 | AddressesService     | 97%      |
 | DriverLicenseService | 96%      | 
 
+## Owner module
+
+ Service      | Coverage     |
+|--------------|--------------|
+| OwnerService | 100%         |    

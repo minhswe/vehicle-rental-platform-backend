@@ -54,7 +54,16 @@ public enum ErrorCode {
 
     //OWNER
     OWNER_ALREADY_EXISTS(409, "Owner already exists"),
-    OWNER_NOT_FOUND(404, "Owner not found");
+    OWNER_NOT_FOUND(404, "Owner not found"),
+
+    //VEHICLE
+    VEHICLE_NOT_FOUND(404, "Vehicle not found"),
+    VEHICLE_ACCESS_DENIED(403, "Vehicle access denied"),
+    LICENSE_PLATE_ALREADY_EXISTS(409, "License plate already exists"),
+    INVALID_VEHICLE_YEAR(400, "Invalid vehicle year"),
+    INVALID_LICENSE_PLATE(400, "Invalid license plate"),
+    VEHICLE_NOT_EDITABLE(409, "Vehicle not editable"),
+    VEHICLE_NOT_DELETABLE(409, "Vehicle not deletable");
 
     private final int status;
     private final String message;

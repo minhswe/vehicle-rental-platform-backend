@@ -11,7 +11,6 @@ public interface AddressMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "userId", ignore = true)
-
     Address toEntity(CreateAddressRequest request);
 
     AddressResponse toResponse(Address address);
@@ -20,6 +19,9 @@ public interface AddressMapper {
             nullValuePropertyMappingStrategy =
                     NullValuePropertyMappingStrategy.IGNORE
     )
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "userId", ignore = true)
     void update(
             @MappingTarget Address address,
             UpdateAddressRequest request
