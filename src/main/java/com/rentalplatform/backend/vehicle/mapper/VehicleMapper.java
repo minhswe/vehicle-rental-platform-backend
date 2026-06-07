@@ -16,6 +16,7 @@ public interface VehicleMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "deleted", ignore = true)
     @Mapping(target = "deletedAt", ignore = true)
+    @Mapping(target = "version", ignore = true)
     Vehicle toEntity(CreateVehicleRequest request);
 
     @Mapping(
@@ -35,6 +36,7 @@ public interface VehicleMapper {
     @Mapping(target = "deleted", ignore = true)
     @Mapping(target = "deletedAt", ignore = true)
     @Mapping(target = "status", ignore = true)
+    @Mapping(target = "version", ignore = true)
     void updateVehicle(
             UpdateVehicleRequest request,
             @MappingTarget Vehicle vehicle

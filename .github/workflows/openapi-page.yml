@@ -14,38 +14,52 @@ jobs:
   publish-openapi:
     runs-on: ubuntu-latest
 
+    env:
+      SPRING_PROFILES_ACTIVE: test
+
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v5
 
-      - name: Setup Java
+      - name: Setup JDK 21
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: 21
+          java-version: '21'
           cache: gradle
 
       - name: Grant Execute Permission
         run: chmod +x gradlew
 
-      - name: Generate OpenAPI
-        run: ./gradlew generateOpenApiDocs
+      - name: Generate OpenAPI Documentation
+        run: ./gradlew clean generateOpenApiDocs --stacktrace
 
-      - name: Prepare site
+      - name: Verify Generated Files
         run: |
-          mkdir site
-          cp build/openapi.json site/openapi.json
-          cp docs/index.html site/index.html
+          echo "===== OPENAPI FILES ====="
+          find docs -type f
+
+      - name: Prepare GitHub Pages Site
+        run: |
+          mkdir -p site
+
+          test -f docs/openapi/openapi.json
+
+          cp docs/openapi/openapi.json site/openapi.json
+
+          if [ -f docs/index.html ]; then
+            cp docs/index.html site/index.html
+          fi
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v4
         with:
           path: site
 
-      - name: Deploy to GitHub Pages
+      - name: Deploy GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

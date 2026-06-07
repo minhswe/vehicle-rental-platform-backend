@@ -1647,13 +1647,13 @@
       "PageVehicleResponse": {
         "type": "object",
         "properties": {
-          "totalPages": {
-            "type": "integer",
-            "format": "int32"
-          },
           "totalElements": {
             "type": "integer",
             "format": "int64"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
           },
           "size": {
             "type": "integer",
@@ -1700,19 +1700,19 @@
           "sort": {
             "$ref": "#/components/schemas/SortObject"
           },
-          "paged": {
+          "unpaged": {
             "type": "boolean"
           },
-          "pageSize": {
-            "type": "integer",
-            "format": "int32"
+          "paged": {
+            "type": "boolean"
           },
           "pageNumber": {
             "type": "integer",
             "format": "int32"
           },
-          "unpaged": {
-            "type": "boolean"
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },

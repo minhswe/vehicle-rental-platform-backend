@@ -83,7 +83,7 @@ Client → Spring Security → Controller → Service → Repository → Postgre
 
 - Swagger UI: http://localhost:8080/swagger-ui/index.html
 
-- OpenAPI Specification: docs/openapi.json
+- OpenAPI Specification: docs/openapi/openapi.json
 
 - Generated automatically via GitHub Actions.
 
