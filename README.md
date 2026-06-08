@@ -83,7 +83,7 @@ Client → Spring Security → Controller → Service → Repository → Postgre
 
 - Swagger UI: https://minhswe.github.io/vehicle-rental-platform-backend/
 
-- OpenAPI Specification: docs/openapi/openapi.json
+- OpenAPI Specification: https://minhswe.github.io/vehicle-rental-platform-backend/openapi.json
 
 - Generated automatically via GitHub Actions.
 
