@@ -12,7 +12,7 @@ import java.util.UUID;
 
 public interface VehicleRepository extends JpaRepository<Vehicle, UUID> {
 
-    boolean existsByLicensePlate(String plateNumber);
+    boolean existsByLicensePlateAndDeletedFalse(String plateNumber);
 
     Optional<Vehicle> findByIdAndVehicleOwnerIdAndDeletedFalse(
             UUID vehicleId,
@@ -29,6 +29,6 @@ public interface VehicleRepository extends JpaRepository<Vehicle, UUID> {
 
     Page<Vehicle> findByVehicleOwnerIdAndDeletedFalse(UUID ownerId, Pageable pageable);
 
-    boolean existsByLicensePlateAndIdNot(String licensePlate, UUID id);
 
+    boolean existsByLicensePlateAndIdNotAndDeletedFalse(String licensePlate, UUID id);
 }

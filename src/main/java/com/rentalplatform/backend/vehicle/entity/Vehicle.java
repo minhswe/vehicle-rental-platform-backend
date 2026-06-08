@@ -1,24 +1,23 @@
 package com.rentalplatform.backend.vehicle.entity;
 
+import com.rentalplatform.backend.common.entity.BaseEntity;
 import com.rentalplatform.backend.owner.entity.VehicleOwner;
 import com.rentalplatform.backend.vehicle.enums.FuelType;
 import com.rentalplatform.backend.vehicle.enums.TransmissionType;
 import com.rentalplatform.backend.vehicle.enums.VehicleStatus;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.time.Instant;
+
 import java.util.UUID;
 
 @Entity
 @Table(name = "vehicles")
 @Getter
 @Setter
-public class Vehicle {
+public class Vehicle extends BaseEntity {
     @Id
     @GeneratedValue
     private UUID id;
@@ -75,15 +74,6 @@ public class Vehicle {
 
     @Enumerated(EnumType.STRING)
     private VehicleStatus status;
-
-    private Instant createdAt;
-    private Instant updatedAt;
-
-    @Column(nullable = false)
-    private boolean deleted;
-
-    private Instant deletedAt;
-
 
     @Version
     private Long version; //prevent lost update

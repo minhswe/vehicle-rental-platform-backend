@@ -22,11 +22,23 @@ public abstract class BaseEntity {
     private Instant createdAt;
 
     @LastModifiedDate
+    @Column(nullable = false)
     private Instant updatedAt;
 
-    @Column
-    private Boolean deleted = false;
+
+    @Column(nullable = false)
+    private boolean deleted = false;
 
     private Instant deletedAt;
+
+    public void markDeleted() {
+        this.deleted = true;
+        this.deletedAt = Instant.now();
+    }
+
+    public void restore() {
+        this.deleted = false;
+        this.deletedAt = null;
+    }
 
 }

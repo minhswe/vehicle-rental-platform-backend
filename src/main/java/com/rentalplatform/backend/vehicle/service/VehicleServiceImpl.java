@@ -15,13 +15,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
+
 import java.time.Year;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class VehicleServiceImpl implements VehicleService {
 
     private final VehicleRepository vehicleRepository;
@@ -31,6 +33,7 @@ public class VehicleServiceImpl implements VehicleService {
     // =========================
     // CREATE
     // =========================
+    @Transactional
     @Override
     public VehicleResponse createVehicle(CreateVehicleRequest request) {
 
@@ -49,16 +52,10 @@ public class VehicleServiceImpl implements VehicleService {
 
         vehicle.setVehicleOwner(owner);
         vehicle.setStatus(VehicleStatus.AVAILABLE);
-        vehicle.setDeleted(false);
 
-        Instant now = Instant.now();
-        vehicle.setCreatedAt(now);
-        vehicle.setUpdatedAt(now);
+        vehicleRepository.save(vehicle);
 
-        Vehicle savedVehicle =
-                vehicleRepository.save(vehicle);
-
-        return vehicleMapper.toResponse(savedVehicle);
+        return vehicleMapper.toResponse(vehicle);
     }
 
     // =========================
@@ -117,6 +114,7 @@ public class VehicleServiceImpl implements VehicleService {
     // =========================
     // UPDATE (OWNER ONLY)
     // =========================
+    @Transactional
     @Override
     public VehicleResponse updateVehicle(UUID vehicleId, UpdateVehicleRequest request) {
 
@@ -129,22 +127,20 @@ public class VehicleServiceImpl implements VehicleService {
         Vehicle vehicle = getOwnedVehicle(vehicleId);
 
 
-
         validateUpdateVehicle(vehicle, request);
 
-        vehicleMapper.updateVehicle(request, vehicle);
+        vehicleMapper.updateVehicle(
+                request,
+                vehicle
+        );
 
-        vehicle.setUpdatedAt(Instant.now());
-
-        Vehicle savedVehicle =
-                vehicleRepository.save(vehicle);
-
-        return vehicleMapper.toResponse(savedVehicle);
+        return vehicleMapper.toResponse(vehicle);
     }
 
     // =========================
     // DELETE (SOFT DELETE)
     // =========================
+    @Transactional
     @Override
     public void softDeleteVehicle(UUID vehicleId) {
 
@@ -156,11 +152,8 @@ public class VehicleServiceImpl implements VehicleService {
             );
         }
 
-        vehicle.setDeleted(true);
-        vehicle.setDeletedAt(Instant.now());
-        vehicle.setUpdatedAt(Instant.now());
+        vehicle.markDeleted();
 
-        vehicleRepository.save(vehicle);
     }
 
     // =========================
@@ -223,7 +216,6 @@ public class VehicleServiceImpl implements VehicleService {
         }
 
 
-
         validateYearOfManufacture(request.getYear());
 
         validateLicensePlateForUpdate(request.getLicensePlate(), vehicle.getId());
@@ -234,7 +226,7 @@ public class VehicleServiceImpl implements VehicleService {
     // =========================
     private void validateLicensePlateForCreate(String licensePlate) {
 
-        if (vehicleRepository.existsByLicensePlate(licensePlate)) {
+        if (vehicleRepository.existsByLicensePlateAndDeletedFalse(licensePlate)) {
             throw new AppException(ErrorCode.LICENSE_PLATE_ALREADY_EXISTS);
         }
     }
@@ -244,7 +236,7 @@ public class VehicleServiceImpl implements VehicleService {
     // =========================
     private void validateLicensePlateForUpdate(String licensePlate, UUID vehicleId) {
 
-        if (vehicleRepository.existsByLicensePlateAndIdNot(licensePlate, vehicleId)) {
+        if (vehicleRepository.existsByLicensePlateAndIdNotAndDeletedFalse(licensePlate, vehicleId)) {
             throw new AppException(ErrorCode.LICENSE_PLATE_ALREADY_EXISTS);
         }
 

@@ -18,7 +18,12 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -40,15 +45,11 @@ class VehicleServiceImplTest {
     @InjectMocks
     private VehicleServiceImpl vehicleService;
 
-    @DisplayName("Should create vehicle when request is valid")
     @Test
-    void createVehicle_ShouldReturnVehicleResponse_WhenValidRequest() {
+    @DisplayName("Create vehicle successfully")
+    void createVehicle_ShouldCreateSuccessfully() {
 
-        CreateVehicleRequest request =
-                new CreateVehicleRequest();
-
-        request.setBrand("Toyota");
-        request.setModel("Vios");
+        CreateVehicleRequest request = new CreateVehicleRequest();
         request.setYear(2024);
         request.setLicensePlate("72d99999");
 
@@ -57,13 +58,9 @@ class VehicleServiceImplTest {
 
         Vehicle vehicle = new Vehicle();
 
-        Vehicle savedVehicle = new Vehicle();
-        savedVehicle.setId(UUID.randomUUID());
+        VehicleResponse response = mock(VehicleResponse.class);
 
-        VehicleResponse response =
-                mock(VehicleResponse.class);
-
-        when(vehicleRepository.existsByLicensePlate("72D99999"))
+        when(vehicleRepository.existsByLicensePlateAndDeletedFalse("72D99999"))
                 .thenReturn(false);
 
         when(ownerService.getCurrentOwner())
@@ -72,10 +69,7 @@ class VehicleServiceImplTest {
         when(vehicleMapper.toEntity(request))
                 .thenReturn(vehicle);
 
-        when(vehicleRepository.save(any(Vehicle.class)))
-                .thenReturn(savedVehicle);
-
-        when(vehicleMapper.toResponse(savedVehicle))
+        when(vehicleMapper.toResponse(vehicle))
                 .thenReturn(response);
 
         VehicleResponse result =
@@ -83,80 +77,112 @@ class VehicleServiceImplTest {
 
         assertNotNull(result);
 
+        ArgumentCaptor<Vehicle> captor =
+                ArgumentCaptor.forClass(Vehicle.class);
+
         verify(vehicleRepository)
-                .save(any(Vehicle.class));
+                .save(captor.capture());
+
+        Vehicle captured = captor.getValue();
+
+        assertEquals(owner, captured.getVehicleOwner());
+        assertEquals(VehicleStatus.AVAILABLE, captured.getStatus());
+
+        verify(vehicleMapper)
+                .toResponse(vehicle);
     }
 
-    @DisplayName("Should throw exception when manufacture year is invalid")
     @Test
-    void createVehicle_ShouldThrowException_WhenYearInvalid() {
+    @DisplayName("Throw exception when vehicle year invalid")
+    void createVehicle_ShouldThrow_WhenYearInvalid() {
 
         CreateVehicleRequest request = new CreateVehicleRequest();
-
-        request.setBrand("Toyota");
-        request.setModel("Vios");
         request.setYear(1980);
         request.setLicensePlate("72D99999");
 
-        AppException exception = assertThrows(
-                AppException.class,
-                () -> vehicleService.createVehicle(request)
-        );
+        AppException ex =
+                assertThrows(
+                        AppException.class,
+                        () -> vehicleService.createVehicle(request)
+                );
 
         assertEquals(
                 ErrorCode.INVALID_VEHICLE_YEAR,
-                exception.getErrorCode()
+                ex.getErrorCode()
+        );
+    }
+
+    @Test
+    @DisplayName("Throw exception when license plate exists")
+    void createVehicle_ShouldThrow_WhenLicensePlateExists() {
+
+        CreateVehicleRequest request = new CreateVehicleRequest();
+        request.setYear(2024);
+        request.setLicensePlate("72D99999");
+
+        when(vehicleRepository.existsByLicensePlateAndDeletedFalse("72D99999"))
+                .thenReturn(true);
+
+        AppException ex =
+                assertThrows(
+                        AppException.class,
+                        () -> vehicleService.createVehicle(request)
+                );
+
+        assertEquals(
+                ErrorCode.LICENSE_PLATE_ALREADY_EXISTS,
+                ex.getErrorCode()
         );
 
         verify(vehicleRepository, never())
                 .save(any());
     }
 
-    @DisplayName("Should normalize license plate before validation and saving")
     @Test
-    void createVehicle_ShouldNormalizeLicensePlate() {
+    @DisplayName("Get vehicle detail successfully")
+    void getVehicleDetail_ShouldReturnVehicle() {
 
-        CreateVehicleRequest request = new CreateVehicleRequest();
-
-        request.setBrand("Toyota");
-        request.setModel("Vios");
-        request.setYear(2024);
-        request.setLicensePlate("72d99999");
-
-        VehicleOwner owner = new VehicleOwner();
-        owner.setId(UUID.randomUUID());
+        UUID vehicleId = UUID.randomUUID();
 
         Vehicle vehicle = new Vehicle();
 
-        Vehicle savedVehicle = new Vehicle();
-        savedVehicle.setId(UUID.randomUUID());
+        VehicleResponse response =
+                mock(VehicleResponse.class);
 
-        VehicleResponse response = mock(VehicleResponse.class);
+        when(vehicleRepository.findByIdAndStatusAndDeletedFalse(
+                vehicleId,
+                VehicleStatus.AVAILABLE
+        )).thenReturn(Optional.of(vehicle));
 
-        when(vehicleRepository.existsByLicensePlate("72D99999"))
-                .thenReturn(false);
-
-        when(ownerService.getCurrentOwner())
-                .thenReturn(owner);
-
-        when(vehicleMapper.toEntity(request))
-                .thenReturn(vehicle);
-
-        when(vehicleRepository.save(any(Vehicle.class)))
-                .thenReturn(savedVehicle);
-
-        when(vehicleMapper.toResponse(savedVehicle))
+        when(vehicleMapper.toResponse(vehicle))
                 .thenReturn(response);
 
-        vehicleService.createVehicle(request);
+        VehicleResponse result =
+                vehicleService.getVehicleDetail(vehicleId);
 
-        verify(vehicleRepository)
-                .existsByLicensePlate("72D99999");
+        assertNotNull(result);
     }
 
-    @DisplayName("Should throw exception when license plate already exists")
     @Test
-    void updateVehicle_ShouldThrowException_WhenLicensePlateAlreadyExists() {
+    @DisplayName("Throw exception when vehicle not found")
+    void getVehicleDetail_ShouldThrow_WhenNotFound() {
+
+        UUID vehicleId = UUID.randomUUID();
+
+        when(vehicleRepository.findByIdAndStatusAndDeletedFalse(
+                vehicleId,
+                VehicleStatus.AVAILABLE
+        )).thenReturn(Optional.empty());
+
+        assertThrows(
+                AppException.class,
+                () -> vehicleService.getVehicleDetail(vehicleId)
+        );
+    }
+
+    @Test
+    @DisplayName("Update vehicle successfully")
+    void updateVehicle_ShouldUpdateSuccessfully() {
 
         UUID ownerId = UUID.randomUUID();
         UUID vehicleId = UUID.randomUUID();
@@ -168,7 +194,59 @@ class VehicleServiceImplTest {
         vehicle.setId(vehicleId);
         vehicle.setStatus(VehicleStatus.AVAILABLE);
 
-        UpdateVehicleRequest request = new UpdateVehicleRequest();
+        UpdateVehicleRequest request =
+                new UpdateVehicleRequest();
+
+        request.setYear(2024);
+        request.setLicensePlate("72D99999");
+
+        VehicleResponse response =
+                mock(VehicleResponse.class);
+
+        when(ownerService.getCurrentOwner())
+                .thenReturn(owner);
+
+        when(vehicleRepository.findByIdAndVehicleOwnerIdAndDeletedFalse(
+                vehicleId,
+                ownerId
+        )).thenReturn(Optional.of(vehicle));
+
+        when(vehicleRepository.existsByLicensePlateAndIdNotAndDeletedFalse(
+                "72D99999",
+                vehicleId
+        )).thenReturn(false);
+
+        when(vehicleMapper.toResponse(vehicle))
+                .thenReturn(response);
+
+        VehicleResponse result =
+                vehicleService.updateVehicle(vehicleId, request);
+
+        assertNotNull(result);
+
+        verify(vehicleMapper)
+                .updateVehicle(request, vehicle);
+
+        verify(vehicleRepository, never())
+                .save(any());
+    }
+
+    @Test
+    @DisplayName("Throw exception when updating rented vehicle")
+    void updateVehicle_ShouldThrow_WhenVehicleRented() {
+
+        UUID ownerId = UUID.randomUUID();
+        UUID vehicleId = UUID.randomUUID();
+
+        VehicleOwner owner = new VehicleOwner();
+        owner.setId(ownerId);
+
+        Vehicle vehicle = new Vehicle();
+        vehicle.setId(vehicleId);
+        vehicle.setStatus(VehicleStatus.RENTED);
+
+        UpdateVehicleRequest request =
+                new UpdateVehicleRequest();
 
         request.setYear(2024);
         request.setLicensePlate("72D99999");
@@ -181,25 +259,21 @@ class VehicleServiceImplTest {
                 ownerId
         )).thenReturn(Optional.of(vehicle));
 
-        when(vehicleRepository.existsByLicensePlateAndIdNot(
-                "72D99999",
-                vehicleId
-        )).thenReturn(true);
-
-        AppException exception = assertThrows(
-                AppException.class,
-                () -> vehicleService.updateVehicle(vehicleId, request)
-        );
+        AppException ex =
+                assertThrows(
+                        AppException.class,
+                        () -> vehicleService.updateVehicle(vehicleId, request)
+                );
 
         assertEquals(
-                ErrorCode.LICENSE_PLATE_ALREADY_EXISTS,
-                exception.getErrorCode()
+                ErrorCode.VEHICLE_NOT_EDITABLE,
+                ex.getErrorCode()
         );
     }
 
-    @DisplayName("Should throw exception when vehicle is not owned by current owner")
     @Test
-    void updateVehicle_ShouldThrowException_WhenVehicleNotOwned() {
+    @DisplayName("Soft delete vehicle successfully")
+    void softDeleteVehicle_ShouldMarkDeleted() {
 
         UUID ownerId = UUID.randomUUID();
         UUID vehicleId = UUID.randomUUID();
@@ -207,33 +281,29 @@ class VehicleServiceImplTest {
         VehicleOwner owner = new VehicleOwner();
         owner.setId(ownerId);
 
+        Vehicle vehicle = new Vehicle();
+        vehicle.setStatus(VehicleStatus.AVAILABLE);
+
         when(ownerService.getCurrentOwner())
                 .thenReturn(owner);
 
         when(vehicleRepository.findByIdAndVehicleOwnerIdAndDeletedFalse(
                 vehicleId,
                 ownerId
-        )).thenReturn(Optional.empty());
+        )).thenReturn(Optional.of(vehicle));
 
-        UpdateVehicleRequest request = new UpdateVehicleRequest();
+        vehicleService.softDeleteVehicle(vehicleId);
 
-        request.setYear(2024);
-        request.setLicensePlate("72D99999");
+        assertTrue(vehicle.isDeleted());
+        assertNotNull(vehicle.getDeletedAt());
 
-        AppException exception = assertThrows(
-                AppException.class,
-                () -> vehicleService.updateVehicle(vehicleId, request)
-        );
-
-        assertEquals(
-                ErrorCode.VEHICLE_NOT_FOUND,
-                exception.getErrorCode()
-        );
+        verify(vehicleRepository, never())
+                .save(any());
     }
 
-    @DisplayName("Throw exception when deleting vehicle not owned by current owner")
     @Test
-    void softDeleteVehicle_ShouldThrowException_WhenVehicleNotOwned() {
+    @DisplayName("Throw exception when deleting rented vehicle")
+    void softDeleteVehicle_ShouldThrow_WhenVehicleRented() {
 
         UUID ownerId = UUID.randomUUID();
         UUID vehicleId = UUID.randomUUID();
@@ -241,169 +311,156 @@ class VehicleServiceImplTest {
         VehicleOwner owner = new VehicleOwner();
         owner.setId(ownerId);
 
+        Vehicle vehicle = new Vehicle();
+        vehicle.setStatus(VehicleStatus.RENTED);
+
         when(ownerService.getCurrentOwner())
                 .thenReturn(owner);
 
         when(vehicleRepository.findByIdAndVehicleOwnerIdAndDeletedFalse(
                 vehicleId,
                 ownerId
-        )).thenReturn(Optional.empty());
+        )).thenReturn(Optional.of(vehicle));
 
-        AppException exception = assertThrows(
-                AppException.class,
-                () -> vehicleService.softDeleteVehicle(vehicleId)
-        );
+        AppException ex =
+                assertThrows(
+                        AppException.class,
+                        () -> vehicleService.softDeleteVehicle(vehicleId)
+                );
 
         assertEquals(
-                ErrorCode.VEHICLE_NOT_FOUND,
-                exception.getErrorCode()
+                ErrorCode.VEHICLE_NOT_DELETABLE,
+                ex.getErrorCode()
         );
     }
 
-    @DisplayName("Should set default values when creating vehicle")
+    @DisplayName("Should return owner vehicle detail")
     @Test
-    void createVehicle_ShouldSetDefaultValues() {
+    void getOwnerVehicleDetail_ShouldReturnVehicle() {
 
-        CreateVehicleRequest request = new CreateVehicleRequest();
-
-        request.setBrand("Toyota");
-        request.setModel("Vios");
-        request.setYear(2024);
-        request.setLicensePlate("72D99999");
+        UUID ownerId = UUID.randomUUID();
+        UUID vehicleId = UUID.randomUUID();
 
         VehicleOwner owner = new VehicleOwner();
-        owner.setId(UUID.randomUUID());
+        owner.setId(ownerId);
 
         Vehicle vehicle = new Vehicle();
 
-        Vehicle savedVehicle = new Vehicle();
-
-        when(vehicleRepository.existsByLicensePlate("72D99999"))
-                .thenReturn(false);
+        VehicleResponse response = mock(VehicleResponse.class);
 
         when(ownerService.getCurrentOwner())
                 .thenReturn(owner);
 
-        when(vehicleMapper.toEntity(request))
-                .thenReturn(vehicle);
+        when(vehicleRepository.findByIdAndVehicleOwnerIdAndDeletedFalse(
+                vehicleId,
+                ownerId
+        )).thenReturn(Optional.of(vehicle));
 
-        when(vehicleRepository.save(any(Vehicle.class)))
-                .thenReturn(savedVehicle);
+        when(vehicleMapper.toResponse(vehicle))
+                .thenReturn(response);
 
-        when(vehicleMapper.toResponse(savedVehicle))
-                .thenReturn(mock(VehicleResponse.class));
+        VehicleResponse result =
+                vehicleService.getOwnerVehicleDetail(vehicleId);
 
-        vehicleService.createVehicle(request);
+        assertNotNull(result);
 
-        ArgumentCaptor<Vehicle> captor =
-                ArgumentCaptor.forClass(Vehicle.class);
-
-        verify(vehicleRepository)
-                .save(captor.capture());
-
-        Vehicle captured = captor.getValue();
-
-        assertEquals(
-                VehicleStatus.AVAILABLE,
-                captured.getStatus()
-        );
-
-        assertFalse(captured.isDeleted());
-
-        assertEquals(
-                owner,
-                captured.getVehicleOwner()
-        );
-
-        assertNotNull(captured.getCreatedAt());
-        assertNotNull(captured.getUpdatedAt());
+        verify(vehicleMapper)
+                .toResponse(vehicle);
     }
 
-    @DisplayName("Should throw exception when license plate already exists")
+    @DisplayName("Should return available vehicles page")
     @Test
-    void createVehicle_ShouldThrowException_WhenLicensePlateExists() {
+    void getAvailableVehicles_ShouldReturnPage() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Vehicle vehicle = new Vehicle();
+
+        Page<Vehicle> vehiclePage =
+                new PageImpl<>(List.of(vehicle));
+
+        VehicleResponse response =
+                mock(VehicleResponse.class);
+
+        when(vehicleRepository.findByStatusAndDeletedFalse(
+                VehicleStatus.AVAILABLE,
+                pageable
+        )).thenReturn(vehiclePage);
+
+        when(vehicleMapper.toResponse(vehicle))
+                .thenReturn(response);
+
+        Page<VehicleResponse> result =
+                vehicleService.getAvailableVehicles(pageable);
+
+        assertEquals(1, result.getTotalElements());
+    }
+
+    @DisplayName("Should throw exception when license plate is null")
+    @Test
+    void createVehicle_ShouldThrowException_WhenLicensePlateNull() {
 
         CreateVehicleRequest request =
                 new CreateVehicleRequest();
 
         request.setYear(2024);
-        request.setLicensePlate("72D99999");
+        request.setLicensePlate(null);
 
-        when(vehicleRepository.existsByLicensePlate("72D99999"))
-                .thenReturn(true);
-
-        assertThrows(
+        AppException exception = assertThrows(
                 AppException.class,
                 () -> vehicleService.createVehicle(request)
+        );
+
+        assertEquals(
+                ErrorCode.INVALID_LICENSE_PLATE,
+                exception.getErrorCode()
         );
 
         verify(vehicleRepository, never())
                 .save(any());
     }
 
-    @DisplayName("Should return vehicle details when vehicle exists and is available")
+    @DisplayName("Should throw exception when license plate is blank")
     @Test
-    void getVehicleDetail_ShouldReturnVehicle() {
+    void createVehicle_ShouldThrowException_WhenLicensePlateBlank() {
 
-        UUID vehicleId = UUID.randomUUID();
+        CreateVehicleRequest request =
+                new CreateVehicleRequest();
 
-        Vehicle vehicle = new Vehicle();
+        request.setYear(2024);
+        request.setLicensePlate("   ");
 
-        VehicleResponse response =
-                mock(VehicleResponse.class);
-
-        when(vehicleRepository
-                     .findByIdAndStatusAndDeletedFalse(
-                             vehicleId,
-                             VehicleStatus.AVAILABLE
-                     ))
-                .thenReturn(Optional.of(vehicle));
-
-        when(vehicleMapper.toResponse(vehicle))
-                .thenReturn(response);
-
-        VehicleResponse result =
-                vehicleService.getVehicleDetail(vehicleId);
-
-        assertNotNull(result);
-    }
-
-    @DisplayName("Should throw exception when vehicle is not found")
-    @Test
-    void getVehicleDetail_ShouldThrowException_WhenNotFound() {
-
-        UUID vehicleId = UUID.randomUUID();
-
-        when(vehicleRepository
-                     .findByIdAndStatusAndDeletedFalse(
-                             vehicleId,
-                             VehicleStatus.AVAILABLE
-                     ))
-                .thenReturn(Optional.empty());
-
-        assertThrows(
+        AppException exception = assertThrows(
                 AppException.class,
-                () -> vehicleService.getVehicleDetail(vehicleId)
+                () -> vehicleService.createVehicle(request)
         );
+
+        assertEquals(
+                ErrorCode.INVALID_LICENSE_PLATE,
+                exception.getErrorCode()
+        );
+
+        verify(vehicleRepository, never())
+                .save(any());
     }
 
-    @DisplayName("Should update vehicle when request is valid")
+    @DisplayName("Should throw exception when update vehicle does not belong to owner")
     @Test
-    void updateVehicle_ShouldUpdateVehicle() {
+    void updateVehicle_ShouldThrowException_WhenVehicleNotOwnedByOwner() {
 
         UUID ownerId = UUID.randomUUID();
         UUID vehicleId = UUID.randomUUID();
 
-        VehicleOwner owner =
-                new VehicleOwner();
-
+        VehicleOwner owner = new VehicleOwner();
         owner.setId(ownerId);
 
-        Vehicle vehicle =
-                new Vehicle();
+        when(ownerService.getCurrentOwner())
+                .thenReturn(owner);
 
-        vehicle.setId(vehicleId);
-        vehicle.setStatus(VehicleStatus.AVAILABLE);
+        when(vehicleRepository.findByIdAndVehicleOwnerIdAndDeletedFalse(
+                vehicleId,
+                ownerId
+        )).thenReturn(Optional.empty());
 
         UpdateVehicleRequest request =
                 new UpdateVehicleRequest();
@@ -411,152 +468,46 @@ class VehicleServiceImplTest {
         request.setYear(2024);
         request.setLicensePlate("72D99999");
 
-        VehicleResponse response =
-                mock(VehicleResponse.class);
-
-        when(ownerService.getCurrentOwner())
-                .thenReturn(owner);
-
-        when(vehicleRepository
-                     .findByIdAndVehicleOwnerIdAndDeletedFalse(
-                             vehicleId,
-                             ownerId
-                     ))
-                .thenReturn(Optional.of(vehicle));
-
-        when(vehicleRepository
-                     .existsByLicensePlateAndIdNot(
-                             "72D99999",
-                             vehicleId
-                     ))
-                .thenReturn(false);
-
-        when(vehicleRepository.save(vehicle))
-                .thenReturn(vehicle);
-
-        when(vehicleMapper.toResponse(vehicle))
-                .thenReturn(response);
-
-        VehicleResponse result =
-                vehicleService.updateVehicle(
-                        vehicleId,
-                        request
-                );
-
-        assertNotNull(result);
-
-        verify(vehicleMapper)
-                .updateVehicle(request, vehicle);
-    }
-
-    @DisplayName("Should throw exception when updating rented vehicle")
-    @Test
-    void updateVehicle_ShouldThrowException_WhenVehicleRented() {
-
-        UUID ownerId = UUID.randomUUID();
-        UUID vehicleId = UUID.randomUUID();
-
-        VehicleOwner owner =
-                new VehicleOwner();
-
-        owner.setId(ownerId);
-
-        Vehicle vehicle =
-                new Vehicle();
-
-        vehicle.setId(vehicleId);
-        vehicle.setStatus(VehicleStatus.RENTED);
-
-        UpdateVehicleRequest request =
-                new UpdateVehicleRequest();
-
-        request.setYear(2024);
-        request.setLicensePlate("72D99999");
-
-        when(ownerService.getCurrentOwner())
-                .thenReturn(owner);
-
-        when(vehicleRepository
-                     .findByIdAndVehicleOwnerIdAndDeletedFalse(
-                             vehicleId,
-                             ownerId
-                     ))
-                .thenReturn(Optional.of(vehicle));
-
-        assertThrows(
+        AppException exception = assertThrows(
                 AppException.class,
                 () -> vehicleService.updateVehicle(
                         vehicleId,
                         request
                 )
         );
+
+        assertEquals(
+                ErrorCode.VEHICLE_NOT_FOUND,
+                exception.getErrorCode()
+        );
     }
 
-    @DisplayName("Should soft delete vehicle when vehicle is available")
+    @DisplayName("Should throw exception when deleting vehicle not found")
     @Test
-    void softDeleteVehicle_ShouldMarkDeleted() {
+    void softDeleteVehicle_ShouldThrowException_WhenVehicleNotFound() {
 
         UUID ownerId = UUID.randomUUID();
         UUID vehicleId = UUID.randomUUID();
 
-        VehicleOwner owner =
-                new VehicleOwner();
-
+        VehicleOwner owner = new VehicleOwner();
         owner.setId(ownerId);
-
-        Vehicle vehicle =
-                new Vehicle();
-
-        vehicle.setStatus(VehicleStatus.AVAILABLE);
 
         when(ownerService.getCurrentOwner())
                 .thenReturn(owner);
 
-        when(vehicleRepository
-                     .findByIdAndVehicleOwnerIdAndDeletedFalse(
-                             vehicleId,
-                             ownerId
-                     ))
-                .thenReturn(Optional.of(vehicle));
+        when(vehicleRepository.findByIdAndVehicleOwnerIdAndDeletedFalse(
+                vehicleId,
+                ownerId
+        )).thenReturn(Optional.empty());
 
-        vehicleService.softDeleteVehicle(vehicleId);
-
-        assertTrue(vehicle.isDeleted());
-
-        verify(vehicleRepository)
-                .save(vehicle);
-    }
-
-    @DisplayName("Should throw exception when deleting rented vehicle")
-    @Test
-    void softDeleteVehicle_ShouldThrowException_WhenVehicleRented() {
-
-        UUID ownerId = UUID.randomUUID();
-        UUID vehicleId = UUID.randomUUID();
-
-        VehicleOwner owner =
-                new VehicleOwner();
-
-        owner.setId(ownerId);
-
-        Vehicle vehicle =
-                new Vehicle();
-
-        vehicle.setStatus(VehicleStatus.RENTED);
-
-        when(ownerService.getCurrentOwner())
-                .thenReturn(owner);
-
-        when(vehicleRepository
-                     .findByIdAndVehicleOwnerIdAndDeletedFalse(
-                             vehicleId,
-                             ownerId
-                     ))
-                .thenReturn(Optional.of(vehicle));
-
-        assertThrows(
+        AppException exception = assertThrows(
                 AppException.class,
                 () -> vehicleService.softDeleteVehicle(vehicleId)
+        );
+
+        assertEquals(
+                ErrorCode.VEHICLE_NOT_FOUND,
+                exception.getErrorCode()
         );
     }
 }

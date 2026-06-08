@@ -63,7 +63,12 @@ public enum ErrorCode {
     INVALID_VEHICLE_YEAR(400, "Invalid vehicle year"),
     INVALID_LICENSE_PLATE(400, "Invalid license plate"),
     VEHICLE_NOT_EDITABLE(409, "Vehicle not editable"),
-    VEHICLE_NOT_DELETABLE(409, "Vehicle not deletable");
+    VEHICLE_NOT_DELETABLE(409, "Vehicle not deletable"),
+
+    //VEHICLE IMAGE
+    VEHICLE_IMAGE_NOT_FOUND(404, "Vehicle image not found"),
+    INVALID_IMAGE_TYPE(400, "Invalid image type"),
+    MAX_IMAGES_EXCEEDED(400, "Max images exceeded");
 
     private final int status;
     private final String message;
