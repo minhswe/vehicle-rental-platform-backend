@@ -22,6 +22,7 @@ jacoco {
 }
 
 test {
+    useJUnitPlatform()
     finalizedBy jacocoTestReport // report is always generated after tests run
 }
 
@@ -30,8 +31,8 @@ jacocoTestReport {
 
     reports {
         xml.required = true
-        csv.required = false
         html.required = true
+        csv.required = false
     }
 }
 //================================== Jacoco  ==================================
