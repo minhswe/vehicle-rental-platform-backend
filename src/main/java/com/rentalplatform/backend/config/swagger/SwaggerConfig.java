@@ -26,14 +26,11 @@ public class SwaggerConfig {
                               .version("1.0")
                               .description("""
             REST API documentation for Vehicle Rental Platform.
-
-            Features:
-            - JWT Authentication
-            - Refresh Token
-            - User Profile
-            - Address Management
-            - Driver License Verification
-            - Vehicle Rental
+            Available Modules:
+            - Authentication & Authorization
+            - Owner Management
+            - Vehicle Management
+            - Vehicle Image Management
             """)
                               .contact(
                                       new Contact()

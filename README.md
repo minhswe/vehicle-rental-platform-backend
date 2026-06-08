@@ -1,4 +1,6 @@
 # Vehicle Rental Platform Backend
+![Java CI](https://github.com/minhswe/vehicle-rental-platform-backend/actions/workflows/java-ci.yml/badge.svg)
+[![codecov](https://codecov.io/gh/minhswe/vehicle-rental-platform-backend/branch/master/graph/badge.svg)](...)
 ![Java](https://img.shields.io/badge/Java-21-blue)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.x-brightgreen)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue)
