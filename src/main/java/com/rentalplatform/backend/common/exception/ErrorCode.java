@@ -68,7 +68,13 @@ public enum ErrorCode {
     //VEHICLE IMAGE
     VEHICLE_IMAGE_NOT_FOUND(404, "Vehicle image not found"),
     INVALID_IMAGE_TYPE(400, "Invalid image type"),
-    MAX_IMAGES_EXCEEDED(400, "Max images exceeded");
+    MAX_IMAGES_EXCEEDED(400, "Max images exceeded"),
+    MAX_DOCUMENTS_EXCEEDED(400, "Max documents exceeded"),
+    VEHICLE_DOCUMENT_NOT_FOUND(404, "Vehicle document not found"),
+    INVALID_DOCUMENT_TYPE(400, "Invalid document type"),
+    DOCUMENT_ALREADY_EXISTS(409, "Document already exists"),
+    DOCUMENT_CANNOT_BE_DELETED(409, "Document cannot be deleted"),
+    DOCUMENT_ALREADY_PROCESSED(409, "Document already processed");
 
     private final int status;
     private final String message;

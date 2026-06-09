@@ -2,8 +2,9 @@ package com.rentalplatform.backend.vehicle.enums;
 
 public enum VehicleStatus {
     AVAILABLE,
-    UNAVAILABLE,
+    INACTIVE,
     MAINTENANCE,
     DELETED, //soft delete
-    RENTED
+    RENTED,
+    PENDING_VERIFICATION
 }

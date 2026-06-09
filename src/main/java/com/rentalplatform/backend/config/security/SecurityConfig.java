@@ -43,16 +43,24 @@ public class SecurityConfig {
                                          "/v3/api-docs/**",
                                          "/swagger-ui/**",
                                          "/swagger-ui.html")
+
                         .permitAll()
+
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/vehicles/**"
                         )
                         .permitAll()
+
                         .requestMatchers("/admin/**")
                         .hasRole(UserRole.ADMIN.name())
+
                         .requestMatchers("/customer/**")
                         .hasRole(UserRole.CUSTOMER.name())
+
+                        .requestMatchers("/owner/**")
+                        .hasRole(UserRole.OWNER.name())
+
                         .anyRequest()
                         .authenticated()
 

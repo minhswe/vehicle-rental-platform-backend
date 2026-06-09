@@ -8,7 +8,6 @@ import lombok.Data;
 import org.slf4j.MDC;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor

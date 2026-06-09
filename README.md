@@ -2,21 +2,21 @@
 ![Java CI](https://github.com/minhswe/vehicle-rental-platform-backend/actions/workflows/java-ci.yml/badge.svg)
 [![codecov](https://codecov.io/gh/minhswe/vehicle-rental-platform-backend/branch/master/graph/badge.svg)](...)
 ![Java](https://img.shields.io/badge/Java-21-blue)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.x-brightgreen)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.5-brightgreen)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue)
 ![Neon](https://img.shields.io/badge/Neon-Cloud_Database-brightgreen)
 ![Cloudinary](https://img.shields.io/badge/Cloudinary-Media_Storage-blue)
 
 ## Current Progress
 
-| Module | Status |
-|----------|----------|
-| Authentication | ✅ Completed |
-| Vehicle | 🚧 In Progress |
-| Booking | ⏳ Planned |
-| Payment | ⏳ Planned |
-| Notification | ⏳ Planned |
-| Review | ⏳ Planned |
+| Module | Status        |
+|----------|---------|
+| Authentication | ✅ Completed         |
+| Vehicle | 🚧 In Progress     |
+| Booking | ⏳ Planned                   |
+| Payment | ⏳ Planned                   |
+| Notification | ⏳ Planned                   |
+| Review | ⏳ Planned                   |
 
 ## Tech stack
 
@@ -61,6 +61,12 @@
 - JUnit 5
 - Mockito
 - Jacoco
+
+
+### Testing Strategy
+- Unit testing using JUnit 5 and Mockito
+- Automated CI test execution through GitHub Actions
+- Code coverage monitoring with JaCoCo and Codecov
 
 Coverage Summary:
 

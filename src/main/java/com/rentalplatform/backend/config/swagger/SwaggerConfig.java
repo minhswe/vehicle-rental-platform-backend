@@ -31,6 +31,8 @@ public class SwaggerConfig {
             - Owner Management
             - Vehicle Management
             - Vehicle Image Management
+            - Vehicle Document Management
+            - Admin could approve/reject vehicle documents
             """)
                               .contact(
                                       new Contact()
