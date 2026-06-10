@@ -1,0 +1,42 @@
+package com.rentalplatform.backend.booking.dto.response;
+
+import com.rentalplatform.backend.booking.enums.BookingStatus;
+import com.rentalplatform.backend.booking.enums.PaymentStatus;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Getter
+@Setter
+public class BookingResponse {
+
+    private UUID id;
+
+    private UUID customerId;
+
+    private UUID vehicleId;
+
+    private UUID ownerId;
+
+    private LocalDateTime startTime;
+
+    private LocalDateTime endTime;
+
+    private Integer totalDays;
+
+    private BigDecimal rentalPrice;
+
+    private BigDecimal depositAmount;
+
+    private BigDecimal totalAmount;
+
+    private BookingStatus bookingStatus;
+
+    private PaymentStatus paymentStatus;
+
+    private Instant createdAt;
+}

@@ -74,7 +74,18 @@ public enum ErrorCode {
     INVALID_DOCUMENT_TYPE(400, "Invalid document type"),
     DOCUMENT_ALREADY_EXISTS(409, "Document already exists"),
     DOCUMENT_CANNOT_BE_DELETED(409, "Document cannot be deleted"),
-    DOCUMENT_ALREADY_PROCESSED(409, "Document already processed");
+    DOCUMENT_ALREADY_PROCESSED(409, "Document already processed"),
+
+    //BOOKING
+    VEHICLE_NOT_AVAILABLE(400, "Vehicle is not available"),
+    OWNER_CANNOT_BOOK_OWN_VEHICLE(400, "Owner cannot book their own vehicle"),
+    INVALID_TIME_RANGE(400, "Invalid time range"),
+    VEHICLE_ALREADY_BOOKED_IN_THIS_TIME_RANGE(400, "Vehicle is already booked in this time range"),
+    INVALID_START_TIME(400, "Start time must be in the future"),
+    BOOKING_NOT_FOUND(404, "Booking not found"),
+    BOOKING_ACCESS_DENIED(403, "You do not have permission to access this booking"),
+    INVALID_BOOKING_STATUS(400, "Invalid booking status"),
+    BOOKING_ALREADY_CANCELLED(400, "Booking already cancelled");
 
     private final int status;
     private final String message;
@@ -84,4 +95,4 @@ public enum ErrorCode {
         this.message = message;
     }
 
-}
+    }

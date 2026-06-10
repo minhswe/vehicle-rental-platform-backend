@@ -1,0 +1,366 @@
+package com.rentalplatform.backend.booking.service;
+
+import com.rentalplatform.backend.booking.dto.request.CreateBookingRequest;
+import com.rentalplatform.backend.booking.dto.response.BookingResponse;
+import com.rentalplatform.backend.booking.entity.Booking;
+import com.rentalplatform.backend.booking.entity.BookingStatusLog;
+import com.rentalplatform.backend.booking.enums.BookingStatus;
+import com.rentalplatform.backend.booking.enums.PaymentStatus;
+import com.rentalplatform.backend.booking.mapper.BookingMapper;
+import com.rentalplatform.backend.booking.repository.BookingRepository;
+import com.rentalplatform.backend.booking.repository.BookingStatusLogRepository;
+import com.rentalplatform.backend.common.exception.AppException;
+import com.rentalplatform.backend.common.exception.ErrorCode;
+import com.rentalplatform.backend.common.security.AuthenticationFacade;
+import com.rentalplatform.backend.owner.service.OwnerContextService;
+import com.rentalplatform.backend.user.entity.User;
+import com.rentalplatform.backend.user.repository.UserRepository;
+import com.rentalplatform.backend.vehicle.entity.Vehicle;
+import com.rentalplatform.backend.vehicle.enums.VehicleStatus;
+import com.rentalplatform.backend.vehicle.repository.VehicleRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class BookingServiceImpl implements BookingService {
+
+    private final BookingRepository bookingRepository;
+    private final VehicleRepository vehicleRepository;
+    private final UserRepository userRepository;
+    private final BookingMapper bookingMapper;
+    private final AuthenticationFacade authenticationFacade;
+    private final OwnerContextService ownerContextService;
+    private final BookingStatusLogRepository bookingStatusLogRepository;
+
+    private static final List<BookingStatus> BLOCKING_STATUSES =
+            List.of(
+                    BookingStatus.PENDING,
+                    BookingStatus.CONFIRMED,
+                    BookingStatus.IN_PROGRESS
+            );
+
+    private static final Set<BookingStatus> CANCELLABLE_STATUSES =
+            Set.of(
+                    BookingStatus.PENDING,
+                    BookingStatus.CONFIRMED
+            );
+
+
+    //Prevent concurrent booking creation using pessimistic locking
+    @Transactional
+    @Override
+    public BookingResponse createBooking(CreateBookingRequest request) {
+
+        UUID customerId =
+                authenticationFacade.getCurrentUserId();
+
+        // 1. Get customer
+        User customer = userRepository.findById(customerId)
+                                      .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        // 2. Get vehicle
+        Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
+                                           .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_FOUND));
+
+        // 3. Validate vehicle active
+        if (vehicle.getStatus() != VehicleStatus.AVAILABLE) {
+            throw new AppException(ErrorCode.VEHICLE_NOT_AVAILABLE);
+        }
+
+        // 4. Validate owner != customer
+        if (vehicle.getVehicleOwner().getUser().getId().equals(customerId)) {
+            throw new AppException(ErrorCode.OWNER_CANNOT_BOOK_OWN_VEHICLE);
+        }
+
+        // 5. Validate time
+        if (!request.getEndTime()
+                    .isAfter(request.getStartTime())) {
+            throw new AppException(ErrorCode.INVALID_TIME_RANGE);
+        }
+
+        if (request.getStartTime()
+                   .isBefore(LocalDateTime.now())) {
+            throw new AppException(ErrorCode.INVALID_START_TIME);
+        }
+
+        // 6. CHECK OVERLAP (IMPORTANT PART)
+        boolean hasConflict =
+                bookingRepository
+                        .existsByVehicleIdAndBookingStatusInAndStartTimeLessThanAndEndTimeGreaterThan(
+                                vehicle.getId(),
+                                BLOCKING_STATUSES,
+                                request.getEndTime(),
+                                request.getStartTime()
+                        );
+
+        if (hasConflict) {
+            throw new AppException(ErrorCode.VEHICLE_ALREADY_BOOKED_IN_THIS_TIME_RANGE);
+        }
+
+        // 7. Calculate days
+        long days = ChronoUnit.DAYS.between(
+                request.getStartTime()
+                       .toLocalDate(),
+                request.getEndTime()
+                       .toLocalDate()
+        );
+
+        days = Math.max(days, 1);
+
+        // 8. Calculate price
+        BigDecimal rentalPrice = vehicle.getPricePerDay()
+                                        .multiply(BigDecimal.valueOf(days));
+
+        BigDecimal deposit = vehicle.getDepositAmount();
+
+        BigDecimal total = rentalPrice.add(deposit);
+
+        // 9. Build booking
+        Booking booking = new Booking();
+
+        booking.setCustomer(customer);
+        booking.setVehicle(vehicle);
+        booking.setOwner(vehicle.getVehicleOwner());
+
+        booking.setStartTime(request.getStartTime());
+        booking.setEndTime(request.getEndTime());
+
+        booking.setTotalDays((int) days);
+        booking.setRentalPrice(rentalPrice);
+        booking.setDepositAmount(deposit);
+        booking.setTotalAmount(total);
+
+        booking.setBookingStatus(BookingStatus.PENDING);
+        booking.setPaymentStatus(PaymentStatus.UNPAID);
+
+        // 10. Save
+        Booking saved = bookingRepository.save(booking);
+
+        return bookingMapper.toResponse(saved);
+    }
+
+    @Override
+    public Page<BookingResponse> getMyBookings(Pageable pageable) {
+        UUID customerId =
+                authenticationFacade.getCurrentUserId();
+
+
+        return bookingRepository
+                .findByCustomerId(
+                        customerId,
+                        pageable
+                )
+                .map(bookingMapper::toResponse);
+    }
+
+    @Override
+    public Page<BookingResponse> getOwnerBookings(Pageable pageable) {
+
+        UUID ownerId = ownerContextService.getCurrentOwner()
+                                          .getId();
+
+        return bookingRepository
+                .findByOwnerId(ownerId, pageable)
+                .map(bookingMapper::toResponse);
+    }
+
+    @Override
+    public BookingResponse getBooking(UUID bookingId) {
+
+        Booking booking = bookingRepository
+                .findById(bookingId)
+                .orElseThrow(() -> new AppException(ErrorCode.BOOKING_NOT_FOUND));
+
+
+        validateBookingAccess(
+                booking,
+                authenticationFacade.getCurrentUserId()
+        );
+
+
+
+        return bookingMapper.toResponse(booking);
+    }
+
+    private Booking getOwnerBooking(UUID bookingId) {
+
+        UUID ownerId =
+                ownerContextService
+                        .getCurrentOwner()
+                        .getId();
+
+        return bookingRepository
+                .findByIdAndOwnerId(
+                        bookingId,
+                        ownerId
+                )
+                .orElseThrow(
+                        () -> new AppException(
+                                ErrorCode.BOOKING_NOT_FOUND
+                        )
+                );
+    }
+
+    @Transactional
+    @Override
+    public BookingResponse confirmBooking(UUID bookingId) {
+
+        Booking booking = getOwnerBooking(bookingId);
+
+        validatePendingBooking(booking);
+
+        BookingStatus oldStatus =
+                booking.getBookingStatus();
+
+        booking.setBookingStatus(
+                BookingStatus.CONFIRMED
+        );
+
+        saveStatusLog(
+                booking,
+                oldStatus,
+                BookingStatus.CONFIRMED
+        );
+
+        return bookingMapper.toResponse(
+                bookingRepository.save(booking)
+        );
+    }
+
+    @Transactional
+    @Override
+    public BookingResponse rejectBooking(UUID bookingId) {
+
+        Booking booking = getOwnerBooking(bookingId);
+
+        validatePendingBooking(booking);
+
+        BookingStatus oldStatus =
+                booking.getBookingStatus();
+
+        booking.setBookingStatus(
+                BookingStatus.REJECTED
+        );
+
+        saveStatusLog(
+                booking,
+                oldStatus,
+                BookingStatus.REJECTED
+        );
+
+        return bookingMapper.toResponse(
+                bookingRepository.save(booking)
+        );
+    }
+
+    @Transactional
+    @Override
+    public BookingResponse cancelBooking(UUID bookingId) {
+
+        Booking booking =
+                bookingRepository
+                        .findById(bookingId)
+                        .orElseThrow(
+                                () -> new AppException(
+                                        ErrorCode.BOOKING_NOT_FOUND
+                                )
+                        );
+
+        validateBookingAccess(
+                booking,
+                authenticationFacade.getCurrentUserId()
+        );
+
+        if (!CANCELLABLE_STATUSES.contains(
+                booking.getBookingStatus()
+        )) {
+            throw new AppException(
+                    ErrorCode.INVALID_BOOKING_STATUS
+            );
+        }
+
+        BookingStatus oldStatus =
+                booking.getBookingStatus();
+
+        booking.setBookingStatus(
+                BookingStatus.CANCELLED
+        );
+
+        saveStatusLog(
+                booking,
+                oldStatus,
+                BookingStatus.CANCELLED
+        );
+
+        return bookingMapper.toResponse(
+                bookingRepository.save(booking)
+        );
+    }
+
+    private void saveStatusLog(
+            Booking booking,
+            BookingStatus oldStatus,
+            BookingStatus newStatus
+    ) {
+
+        BookingStatusLog log =
+                new BookingStatusLog();
+
+        log.setBooking(booking);
+        log.setOldStatus(oldStatus);
+        log.setNewStatus(newStatus);
+        log.setChangedAt(Instant.now());
+        log.setChangedBy(authenticationFacade.getCurrentUserId());
+
+        bookingStatusLogRepository.save(log);
+    }
+
+    private void validatePendingBooking(
+            Booking booking
+    ) {
+
+        if (booking.getBookingStatus()
+            != BookingStatus.PENDING) {
+
+            throw new AppException(
+                    ErrorCode.INVALID_BOOKING_STATUS
+            );
+        }
+    }
+
+    private void validateBookingAccess(
+            Booking booking,
+            UUID userId
+    ) {
+
+        boolean isCustomer =
+                booking.getCustomer()
+                       .getId()
+                       .equals(userId);
+
+        boolean isOwner =
+                booking.getOwner()
+                       .getUser()
+                       .getId()
+                       .equals(userId);
+
+        if (!isCustomer && !isOwner) {
+            throw new AppException(
+                    ErrorCode.BOOKING_ACCESS_DENIED
+            );
+        }
+    }
+}

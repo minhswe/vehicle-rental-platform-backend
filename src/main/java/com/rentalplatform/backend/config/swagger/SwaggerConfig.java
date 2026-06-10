@@ -36,7 +36,7 @@ public class SwaggerConfig {
             """)
                               .contact(
                                       new Contact()
-                                              .name("MR.MINH PHAM")
+                                              .name("mr. Pham Quang Minh")
                                               .email("quangminhswe@gmail.com")
                               )
                               .license(
