@@ -1,6 +1,7 @@
 package com.rentalplatform.backend.vehicle.entity;
 
-import com.rentalplatform.backend.common.entity.BaseEntity;
+import com.rentalplatform.backend.common.entity.AuditEntity;
+import com.rentalplatform.backend.common.entity.SoftDeleteEntity;
 import com.rentalplatform.backend.owner.entity.VehicleOwner;
 import com.rentalplatform.backend.vehicle.enums.FuelType;
 import com.rentalplatform.backend.vehicle.enums.TransmissionType;
@@ -17,7 +18,7 @@ import java.util.UUID;
 @Table(name = "vehicles")
 @Getter
 @Setter
-public class Vehicle extends BaseEntity {
+public class Vehicle extends SoftDeleteEntity {
     @Id
     @GeneratedValue
     private UUID id;
@@ -74,7 +75,4 @@ public class Vehicle extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     private VehicleStatus status;
-
-    @Version
-    private Long version; //prevent lost update
 }

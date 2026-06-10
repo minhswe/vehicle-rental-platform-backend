@@ -13,4 +13,5 @@ public interface OwnerRepository extends JpaRepository<VehicleOwner, UUID> {
     Optional<VehicleOwner> findByUserId(UUID userId);
 
     boolean existsByUserId(UUID userId);
+
 }

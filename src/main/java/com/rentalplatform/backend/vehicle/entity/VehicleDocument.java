@@ -1,6 +1,7 @@
 package com.rentalplatform.backend.vehicle.entity;
 
-import com.rentalplatform.backend.common.entity.BaseEntity;
+import com.rentalplatform.backend.common.entity.AuditEntity;
+import com.rentalplatform.backend.common.entity.SoftDeleteEntity;
 import com.rentalplatform.backend.vehicle.enums.DocumentType;
 import com.rentalplatform.backend.vehicle.enums.VerificationStatus;
 import jakarta.persistence.*;
@@ -15,7 +16,7 @@ import java.util.UUID;
 @Table(name = "vehicle_documents")
 @Getter
 @Setter
-public class VehicleDocument extends BaseEntity {
+public class VehicleDocument extends SoftDeleteEntity {
     @Id
     @GeneratedValue
     private UUID id;
@@ -34,7 +35,6 @@ public class VehicleDocument extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private VerificationStatus verificationStatus;
-
 
     private Instant verifiedAt;
 }
