@@ -30,47 +30,39 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationProvider authenticationProvider)
-            throws Exception {
-        http
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(session ->
-                                           session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authenticationProvider(authenticationProvider)
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**",
-                                         "/public/**",
-                                         "/v3/api-docs/**",
-                                         "/swagger-ui/**",
-                                         "/swagger-ui.html")
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   AuthenticationProvider authenticationProvider) throws Exception {
+        http.csrf(csrf -> csrf.disable())
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authenticationProvider(authenticationProvider)
+            .authorizeHttpRequests(
+                    auth -> auth.requestMatchers("/auth/**", "/public/**", "/v3/api-docs/**", "/swagger-ui/**",
+                                                 "/swagger-ui.html")
 
-                        .permitAll()
+                                .permitAll()
 
-                        .requestMatchers(
-                                HttpMethod.GET,
-                                "/vehicles/**"
-                        )
-                        .permitAll()
+                                .requestMatchers(HttpMethod.GET, "/vehicles/**")
+                                .permitAll()
 
-                        .requestMatchers("/admin/**")
-                        .hasRole(UserRole.ADMIN.name())
+                                .requestMatchers("/admin/**")
+                                .hasRole(UserRole.ADMIN.name())
 
-                        .requestMatchers("/customer/**")
-                        .hasRole(UserRole.CUSTOMER.name())
+                                .requestMatchers("/owner/**")
+                                .hasRole(UserRole.OWNER.name())
 
-                        .requestMatchers("/owner/**")
-                        .hasRole(UserRole.OWNER.name())
+                                .requestMatchers("/bookings/**")
+                                .hasAnyRole(UserRole.CUSTOMER.name(), UserRole.OWNER.name())
 
-                        .anyRequest()
-                        .authenticated()
+                                .requestMatchers("/customer/**")
+                                .hasRole(UserRole.CUSTOMER.name())
+                                
+                                .anyRequest()
+                                .authenticated()
 
-                )
+            )
 
 
-                .addFilterBefore(
-                        jwtAuthenticationFilter,
-                        UsernamePasswordAuthenticationFilter.class
-                );
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -81,13 +73,10 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationProvider authenticationProvider(
-            UserDetailsService userDetailsService,
-            PasswordEncoder passwordEncoder
-    ) {
+    public AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService,
+                                                         PasswordEncoder passwordEncoder) {
 
-        DaoAuthenticationProvider authProvider =
-                new DaoAuthenticationProvider(userDetailsService);
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService);
 
         authProvider.setPasswordEncoder(passwordEncoder);
 
@@ -95,9 +84,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration config
-    ) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 }
