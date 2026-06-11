@@ -1,7 +1,6 @@
 package com.rentalplatform.backend.booking.entity;
 
 import com.rentalplatform.backend.booking.enums.BookingStatus;
-import com.rentalplatform.backend.booking.enums.PaymentStatus;
 import com.rentalplatform.backend.common.entity.AuditEntity;
 import com.rentalplatform.backend.owner.entity.VehicleOwner;
 import com.rentalplatform.backend.user.entity.User;
@@ -18,21 +17,22 @@ import java.util.UUID;
 @Table(name = "bookings")
 @Getter
 @Setter
+
 public class Booking extends AuditEntity {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id")
+    @JoinColumn(name = "customer_id", nullable = false)
     private User customer;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "vehicle_id")
+    @JoinColumn(name = "vehicle_id", nullable = false)
     private Vehicle vehicle;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "owner_id")
+    @JoinColumn(name = "owner_id", nullable = false)
     private VehicleOwner owner;
 
     private LocalDateTime startTime;
@@ -49,7 +49,4 @@ public class Booking extends AuditEntity {
 
     @Enumerated(EnumType.STRING)
     private BookingStatus bookingStatus;
-
-    @Enumerated(EnumType.STRING)
-    private PaymentStatus paymentStatus;
 }

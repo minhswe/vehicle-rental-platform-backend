@@ -5,7 +5,6 @@ import com.rentalplatform.backend.booking.dto.response.BookingResponse;
 import com.rentalplatform.backend.booking.entity.Booking;
 import com.rentalplatform.backend.booking.entity.BookingStatusLog;
 import com.rentalplatform.backend.booking.enums.BookingStatus;
-import com.rentalplatform.backend.booking.enums.PaymentStatus;
 import com.rentalplatform.backend.booking.mapper.BookingMapper;
 import com.rentalplatform.backend.booking.repository.BookingRepository;
 import com.rentalplatform.backend.booking.repository.BookingStatusLogRepository;
@@ -59,7 +58,7 @@ public class BookingServiceImpl implements BookingService {
             );
 
 
-    //Prevent concurrent booking creation using pessimistic locking
+    // todo: Prevent concurrent booking creation using pessimistic locking
     @Transactional
     @Override
     public BookingResponse createBooking(CreateBookingRequest request) {
@@ -67,50 +66,24 @@ public class BookingServiceImpl implements BookingService {
         UUID customerId =
                 authenticationFacade.getCurrentUserId();
 
-        // 1. Get customer
+        // Get customer
         User customer = userRepository.findById(customerId)
                                       .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-        // 2. Get vehicle
+        // get vehicle
         Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
                                            .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_FOUND));
 
-        // 3. Validate vehicle active
-        if (vehicle.getStatus() != VehicleStatus.AVAILABLE) {
-            throw new AppException(ErrorCode.VEHICLE_NOT_AVAILABLE);
-        }
+        validateBookingRequest(request, vehicle, customerId);
 
-        // 4. Validate owner != customer
-        if (vehicle.getVehicleOwner().getUser().getId().equals(customerId)) {
-            throw new AppException(ErrorCode.OWNER_CANNOT_BOOK_OWN_VEHICLE);
-        }
+        //CHECK OVERLAPPING BOOKINGS
+        validateVehicleAvailability(
+                vehicle.getId(),
+                request.getStartTime(),
+                request.getEndTime()
+        );
 
-        // 5. Validate time
-        if (!request.getEndTime()
-                    .isAfter(request.getStartTime())) {
-            throw new AppException(ErrorCode.INVALID_TIME_RANGE);
-        }
-
-        if (request.getStartTime()
-                   .isBefore(LocalDateTime.now())) {
-            throw new AppException(ErrorCode.INVALID_START_TIME);
-        }
-
-        // 6. CHECK OVERLAP (IMPORTANT PART)
-        boolean hasConflict =
-                bookingRepository
-                        .existsByVehicleIdAndBookingStatusInAndStartTimeLessThanAndEndTimeGreaterThan(
-                                vehicle.getId(),
-                                BLOCKING_STATUSES,
-                                request.getEndTime(),
-                                request.getStartTime()
-                        );
-
-        if (hasConflict) {
-            throw new AppException(ErrorCode.VEHICLE_ALREADY_BOOKED_IN_THIS_TIME_RANGE);
-        }
-
-        // 7. Calculate days
+        // Calculate days
         long days = ChronoUnit.DAYS.between(
                 request.getStartTime()
                        .toLocalDate(),
@@ -129,22 +102,15 @@ public class BookingServiceImpl implements BookingService {
         BigDecimal total = rentalPrice.add(deposit);
 
         // 9. Build booking
-        Booking booking = new Booking();
-
-        booking.setCustomer(customer);
-        booking.setVehicle(vehicle);
-        booking.setOwner(vehicle.getVehicleOwner());
-
-        booking.setStartTime(request.getStartTime());
-        booking.setEndTime(request.getEndTime());
-
-        booking.setTotalDays((int) days);
-        booking.setRentalPrice(rentalPrice);
-        booking.setDepositAmount(deposit);
-        booking.setTotalAmount(total);
-
-        booking.setBookingStatus(BookingStatus.PENDING);
-        booking.setPaymentStatus(PaymentStatus.UNPAID);
+        Booking booking = buildBooking(
+                customer,
+                vehicle,
+                request,
+                days,
+                rentalPrice,
+                deposit,
+                total
+        );
 
         // 10. Save
         Booking saved = bookingRepository.save(booking);
@@ -180,16 +146,13 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingResponse getBooking(UUID bookingId) {
 
-        Booking booking = bookingRepository
-                .findById(bookingId)
-                .orElseThrow(() -> new AppException(ErrorCode.BOOKING_NOT_FOUND));
+        Booking booking = getBookingById(bookingId);
 
 
         validateBookingAccess(
                 booking,
                 authenticationFacade.getCurrentUserId()
         );
-
 
 
         return bookingMapper.toResponse(booking);
@@ -222,21 +185,11 @@ public class BookingServiceImpl implements BookingService {
 
         validatePendingBooking(booking);
 
-        BookingStatus oldStatus =
-                booking.getBookingStatus();
-
-        booking.setBookingStatus(
-                BookingStatus.CONFIRMED
-        );
-
-        saveStatusLog(
-                booking,
-                oldStatus,
-                BookingStatus.CONFIRMED
-        );
-
         return bookingMapper.toResponse(
-                bookingRepository.save(booking)
+                updateBookingStatus(
+                        booking,
+                        BookingStatus.CONFIRMED
+                )
         );
     }
 
@@ -248,21 +201,11 @@ public class BookingServiceImpl implements BookingService {
 
         validatePendingBooking(booking);
 
-        BookingStatus oldStatus =
-                booking.getBookingStatus();
-
-        booking.setBookingStatus(
-                BookingStatus.REJECTED
-        );
-
-        saveStatusLog(
-                booking,
-                oldStatus,
-                BookingStatus.REJECTED
-        );
-
         return bookingMapper.toResponse(
-                bookingRepository.save(booking)
+                updateBookingStatus(
+                        booking,
+                        BookingStatus.REJECTED
+                )
         );
     }
 
@@ -270,14 +213,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingResponse cancelBooking(UUID bookingId) {
 
-        Booking booking =
-                bookingRepository
-                        .findById(bookingId)
-                        .orElseThrow(
-                                () -> new AppException(
-                                        ErrorCode.BOOKING_NOT_FOUND
-                                )
-                        );
+        Booking booking = getBookingById(bookingId);
 
         validateBookingAccess(
                 booking,
@@ -292,21 +228,11 @@ public class BookingServiceImpl implements BookingService {
             );
         }
 
-        BookingStatus oldStatus =
-                booking.getBookingStatus();
-
-        booking.setBookingStatus(
-                BookingStatus.CANCELLED
-        );
-
-        saveStatusLog(
-                booking,
-                oldStatus,
-                BookingStatus.CANCELLED
-        );
-
         return bookingMapper.toResponse(
-                bookingRepository.save(booking)
+                updateBookingStatus(
+                        booking,
+                        BookingStatus.CANCELLED
+                )
         );
     }
 
@@ -362,5 +288,111 @@ public class BookingServiceImpl implements BookingService {
                     ErrorCode.BOOKING_ACCESS_DENIED
             );
         }
+    }
+
+    private Booking buildBooking(
+            User customer,
+            Vehicle vehicle,
+            CreateBookingRequest request,
+            long days,
+            BigDecimal rentalPrice,
+            BigDecimal deposit,
+            BigDecimal total
+    ) {
+
+        Booking booking = new Booking();
+
+        booking.setCustomer(customer);
+        booking.setVehicle(vehicle);
+        booking.setOwner(vehicle.getVehicleOwner());
+
+        booking.setStartTime(request.getStartTime());
+        booking.setEndTime(request.getEndTime());
+
+        booking.setTotalDays((int) days);
+        booking.setRentalPrice(rentalPrice);
+        booking.setDepositAmount(deposit);
+        booking.setTotalAmount(total);
+
+        booking.setBookingStatus(BookingStatus.PENDING);
+
+        return booking;
+    }
+
+    private void validateBookingRequest(
+            CreateBookingRequest request,
+            Vehicle vehicle,
+            UUID customerId
+    ) {
+
+        if (vehicle.getStatus() != VehicleStatus.AVAILABLE) {
+            throw new AppException(ErrorCode.VEHICLE_NOT_AVAILABLE);
+        }
+
+        if (vehicle.getVehicleOwner()
+                   .getUser()
+                   .getId()
+                   .equals(customerId)) {
+            throw new AppException(ErrorCode.OWNER_CANNOT_BOOK_OWN_VEHICLE);
+        }
+
+        if (!request.getEndTime()
+                    .isAfter(request.getStartTime())) {
+            throw new AppException(ErrorCode.INVALID_TIME_RANGE);
+        }
+
+        if (request.getStartTime()
+                   .isBefore(LocalDateTime.now())) {
+            throw new AppException(ErrorCode.INVALID_START_TIME);
+        }
+    }
+
+    private void validateVehicleAvailability(
+            UUID vehicleId,
+            LocalDateTime startTime,
+            LocalDateTime endTime
+    ) {
+
+        boolean hasConflict =
+                bookingRepository
+                        .existsByVehicleIdAndBookingStatusInAndStartTimeLessThanAndEndTimeGreaterThan(
+                                vehicleId,
+                                BLOCKING_STATUSES,
+                                endTime,
+                                startTime
+                        );
+
+        if (hasConflict) {
+            throw new AppException(
+                    ErrorCode.VEHICLE_ALREADY_BOOKED_IN_THIS_TIME_RANGE
+            );
+        }
+    }
+
+    private Booking updateBookingStatus(
+            Booking booking,
+            BookingStatus newStatus
+    ) {
+
+        BookingStatus oldStatus = booking.getBookingStatus();
+
+        booking.setBookingStatus(newStatus);
+
+        saveStatusLog(
+                booking,
+                oldStatus,
+                newStatus
+        );
+
+        return bookingRepository.save(booking);
+    }
+
+    private Booking getBookingById(UUID bookingId) {
+        return bookingRepository.findById(bookingId)
+                                .orElseThrow(
+                                        () -> new AppException(
+                                                ErrorCode.BOOKING_NOT_FOUND
+                                        )
+                                );
     }
 }

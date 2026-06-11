@@ -85,7 +85,12 @@ public enum ErrorCode {
     BOOKING_NOT_FOUND(404, "Booking not found"),
     BOOKING_ACCESS_DENIED(403, "You do not have permission to access this booking"),
     INVALID_BOOKING_STATUS(400, "Invalid booking status"),
-    BOOKING_ALREADY_CANCELLED(400, "Booking already cancelled");
+    BOOKING_ALREADY_CANCELLED(400, "Booking already cancelled"),
+
+    //PAYMENT
+    PAYMENT_NOT_FOUND(404, "Payment not found"),
+    PAYMENT_ALREADY_EXISTS(409, "Payment already exists"),
+    INVALID_PAYMENT_STATE(400, "Invalid payment state");
 
     private final int status;
     private final String message;

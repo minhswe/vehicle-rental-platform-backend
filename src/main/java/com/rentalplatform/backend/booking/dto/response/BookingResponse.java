@@ -1,7 +1,6 @@
 package com.rentalplatform.backend.booking.dto.response;
 
 import com.rentalplatform.backend.booking.enums.BookingStatus;
-import com.rentalplatform.backend.booking.enums.PaymentStatus;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -35,8 +34,6 @@ public class BookingResponse {
     private BigDecimal totalAmount;
 
     private BookingStatus bookingStatus;
-
-    private PaymentStatus paymentStatus;
 
     private Instant createdAt;
 }

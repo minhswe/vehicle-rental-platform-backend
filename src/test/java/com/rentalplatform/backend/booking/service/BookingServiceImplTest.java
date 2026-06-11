@@ -39,8 +39,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class BookingServiceImplTest {
@@ -974,5 +973,267 @@ class BookingServiceImplTest {
         );
     }
 
+    @Test
+    @DisplayName("Should throw BOOKING_NOT_FOUND when owner booking not found")
+    void confirmBooking_ShouldThrowBookingNotFound() {
 
+        when(ownerContextService.getCurrentOwner())
+                .thenReturn(owner);
+
+        when(
+                bookingRepository.findByIdAndOwnerId(
+                        bookingId,
+                        ownerId
+                )
+        ).thenReturn(Optional.empty());
+
+        AppException exception =
+                assertThrows(
+                        AppException.class,
+                        () -> bookingService.confirmBooking(bookingId)
+                );
+
+        assertEquals(
+                ErrorCode.BOOKING_NOT_FOUND,
+                exception.getErrorCode()
+        );
+    }
+
+    @Test
+    @DisplayName("Should calculate booking price correctly")
+    void createBooking_ShouldCalculatePriceCorrectly() {
+
+        CreateBookingRequest request =
+                new CreateBookingRequest();
+
+        request.setVehicleId(vehicle.getId());
+        request.setStartTime(LocalDateTime.now().plusDays(1));
+        request.setEndTime(LocalDateTime.now().plusDays(4));
+
+        when(authenticationFacade.getCurrentUserId())
+                .thenReturn(userId);
+
+        when(userRepository.findById(userId))
+                .thenReturn(Optional.of(customer));
+
+        when(vehicleRepository.findById(vehicle.getId()))
+                .thenReturn(Optional.of(vehicle));
+
+        when(
+                bookingRepository
+                        .existsByVehicleIdAndBookingStatusInAndStartTimeLessThanAndEndTimeGreaterThan(
+                                any(),
+                                any(),
+                                any(),
+                                any()
+                        )
+        ).thenReturn(false);
+
+        when(bookingRepository.save(any()))
+                .thenAnswer(i -> i.getArgument(0));
+
+        when(bookingMapper.toResponse(any()))
+                .thenReturn(bookingResponse);
+
+        bookingService.createBooking(request);
+
+        ArgumentCaptor<Booking> captor =
+                ArgumentCaptor.forClass(Booking.class);
+
+        verify(bookingRepository)
+                .save(captor.capture());
+
+        Booking savedBooking =
+                captor.getValue();
+
+        assertEquals(3, savedBooking.getTotalDays());
+
+        assertEquals(
+                BigDecimal.valueOf(300),
+                savedBooking.getRentalPrice()
+        );
+
+        assertEquals(
+                BigDecimal.valueOf(50),
+                savedBooking.getDepositAmount()
+        );
+
+        assertEquals(
+                BigDecimal.valueOf(350),
+                savedBooking.getTotalAmount()
+        );
+
+        assertEquals(
+                BookingStatus.PENDING,
+                savedBooking.getBookingStatus()
+        );
+    }
+
+    @Test
+    @DisplayName("Should throw BOOKING_NOT_FOUND when cancelling unknown booking")
+    void cancelBooking_ShouldThrowBookingNotFound() {
+
+        when(bookingRepository.findById(bookingId))
+                .thenReturn(Optional.empty());
+
+        AppException exception =
+                assertThrows(
+                        AppException.class,
+                        () -> bookingService.cancelBooking(bookingId)
+                );
+
+        assertEquals(
+                ErrorCode.BOOKING_NOT_FOUND,
+                exception.getErrorCode()
+        );
+    }
+
+    @Test
+    @DisplayName("Should set minimum booking days to one when rental duration is less than one day")
+    void createBooking_ShouldUseMinimumOneDay() {
+
+        CreateBookingRequest request =
+                new CreateBookingRequest();
+
+        request.setVehicleId(vehicle.getId());
+
+        LocalDateTime start =
+                LocalDateTime.now().plusDays(1);
+
+        LocalDateTime end =
+                start.plusHours(5);
+
+        request.setStartTime(start);
+        request.setEndTime(end);
+
+        when(authenticationFacade.getCurrentUserId())
+                .thenReturn(userId);
+
+        when(userRepository.findById(userId))
+                .thenReturn(Optional.of(customer));
+
+        when(vehicleRepository.findById(vehicle.getId()))
+                .thenReturn(Optional.of(vehicle));
+
+        when(
+                bookingRepository
+                        .existsByVehicleIdAndBookingStatusInAndStartTimeLessThanAndEndTimeGreaterThan(
+                                any(),
+                                any(),
+                                any(),
+                                any()
+                        )
+        ).thenReturn(false);
+
+        when(bookingRepository.save(any()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        when(bookingMapper.toResponse(any()))
+                .thenReturn(bookingResponse);
+
+        bookingService.createBooking(request);
+
+        ArgumentCaptor<Booking> captor =
+                ArgumentCaptor.forClass(Booking.class);
+
+        verify(bookingRepository)
+                .save(captor.capture());
+
+        Booking savedBooking =
+                captor.getValue();
+
+        assertEquals(
+                1,
+                savedBooking.getTotalDays()
+        );
+
+        assertEquals(
+                vehicle.getPricePerDay(),
+                savedBooking.getRentalPrice()
+        );
+
+        assertEquals(
+                vehicle.getPricePerDay()
+                       .add(vehicle.getDepositAmount()),
+                savedBooking.getTotalAmount()
+        );
+    }
+
+    @Test
+    @DisplayName("Should not save booking when time range is invalid")
+    void createBooking_ShouldNotSaveWhenTimeRangeInvalid() {
+
+        CreateBookingRequest request =
+                new CreateBookingRequest();
+
+        request.setVehicleId(vehicle.getId());
+
+        request.setStartTime(
+                LocalDateTime.now().plusDays(2)
+        );
+
+        request.setEndTime(
+                LocalDateTime.now().plusDays(1)
+        );
+
+        when(authenticationFacade.getCurrentUserId())
+                .thenReturn(userId);
+
+        when(userRepository.findById(userId))
+                .thenReturn(Optional.of(customer));
+
+        when(vehicleRepository.findById(vehicle.getId()))
+                .thenReturn(Optional.of(vehicle));
+
+        assertThrows(
+                AppException.class,
+                () -> bookingService.createBooking(request)
+        );
+
+        verify(
+                bookingRepository,
+                never()
+        ).save(any());
+    }
+
+    @Test
+    @DisplayName("Should not save booking when vehicle already booked")
+    void createBooking_ShouldNotSaveWhenVehicleAlreadyBooked() {
+
+        CreateBookingRequest request =
+                new CreateBookingRequest();
+
+        request.setVehicleId(vehicle.getId());
+        request.setStartTime(LocalDateTime.now().plusDays(1));
+        request.setEndTime(LocalDateTime.now().plusDays(3));
+
+        when(authenticationFacade.getCurrentUserId())
+                .thenReturn(userId);
+
+        when(userRepository.findById(userId))
+                .thenReturn(Optional.of(customer));
+
+        when(vehicleRepository.findById(vehicle.getId()))
+                .thenReturn(Optional.of(vehicle));
+
+        when(
+                bookingRepository
+                        .existsByVehicleIdAndBookingStatusInAndStartTimeLessThanAndEndTimeGreaterThan(
+                                any(),
+                                any(),
+                                any(),
+                                any()
+                        )
+        ).thenReturn(true);
+
+        assertThrows(
+                AppException.class,
+                () -> bookingService.createBooking(request)
+        );
+
+        verify(
+                bookingRepository,
+                never()
+        ).save(any());
+    }
 }
