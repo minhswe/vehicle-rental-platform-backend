@@ -4,7 +4,7 @@ import com.rentalplatform.backend.common.exception.AppException;
 import com.rentalplatform.backend.common.exception.ErrorCode;
 import com.rentalplatform.backend.common.upload.StorageService;
 import com.rentalplatform.backend.owner.entity.VehicleOwner;
-import com.rentalplatform.backend.owner.service.OwnerService;
+import com.rentalplatform.backend.owner.service.OwnerContextService;
 import com.rentalplatform.backend.vehicle.dto.response.VehicleDocumentResponse;
 import com.rentalplatform.backend.vehicle.entity.Vehicle;
 import com.rentalplatform.backend.vehicle.entity.VehicleDocument;
@@ -45,8 +45,9 @@ class VehicleDocumentServiceImplTest {
     @Mock
     private VehicleDocumentMapper vehicleDocumentMapper;
 
+
     @Mock
-    private OwnerService ownerService;
+    private OwnerContextService ownerContextService;
 
     @Mock
     private StorageService storageService;
@@ -62,167 +63,96 @@ class VehicleDocumentServiceImplTest {
 
         UUID vehicleId = UUID.randomUUID();
 
-        VehicleOwner owner = new VehicleOwner();
-        owner.setId(UUID.randomUUID());
+        UUID ownerId = UUID.randomUUID();
 
         Vehicle vehicle = new Vehicle();
 
         VehicleDocument document = new VehicleDocument();
 
-        VehicleDocumentResponse response =
-                mock(VehicleDocumentResponse.class);
+        VehicleDocumentResponse response = mock(VehicleDocumentResponse.class);
 
-        when(file.getContentType())
-                .thenReturn("application/pdf");
+        when(file.getContentType()).thenReturn("application/pdf");
 
-        when(file.isEmpty())
-                .thenReturn(false);
+        when(file.isEmpty()).thenReturn(false);
 
-        when(file.getSize())
-                .thenReturn(1024L);
+        when(file.getSize()).thenReturn(1024L);
 
-        when(vehicleDocumentRepository
-                     .existsByVehicleIdAndDocumentTypeAndDeletedFalse(
-                             vehicleId,
-                             DocumentType.REGISTRATION
-                     ))
-                .thenReturn(false);
+        when(vehicleDocumentRepository.existsByVehicleIdAndDocumentTypeAndDeletedFalse(vehicleId,
+                                                                                       DocumentType.REGISTRATION)).thenReturn(
+                false);
 
-        when(ownerService.getCurrentOwner())
-                .thenReturn(owner);
+        when(ownerContextService.getCurrentOwnerId()).thenReturn(ownerId);
 
-        when(vehicleRepository
-                     .findByIdAndVehicleOwnerIdAndDeletedFalse(
-                             vehicleId,
-                             owner.getId()
-                     ))
-                .thenReturn(Optional.of(vehicle));
+        when(vehicleRepository.findByIdAndVehicleOwnerIdAndDeletedFalse(vehicleId, ownerId)).thenReturn(
+                Optional.of(vehicle));
 
-        when(vehicleDocumentRepository
-                     .countByVehicleIdAndDeletedFalse(vehicleId))
-                .thenReturn(0L);
+        when(vehicleDocumentRepository.countByVehicleIdAndDeletedFalse(vehicleId)).thenReturn(0L);
 
-        when(storageService.upload(file, "vehicle-documents"))
-                .thenReturn("url");
+        when(storageService.upload(file, "vehicle-documents")).thenReturn("url");
 
-        when(vehicleDocumentRepository.save(any()))
-                .thenReturn(document);
+        when(vehicleDocumentRepository.save(any())).thenReturn(document);
 
-        when(vehicleDocumentMapper.toResponse(document))
-                .thenReturn(response);
+        when(vehicleDocumentMapper.toResponse(document)).thenReturn(response);
 
-        VehicleDocumentResponse result =
-                service.uploadDocument(
-                        vehicleId,
-                        DocumentType.REGISTRATION,
-                        file
-                );
+        VehicleDocumentResponse result = service.uploadDocument(vehicleId, DocumentType.REGISTRATION, file);
 
         assertNotNull(result);
 
-        verify(storageService)
-                .upload(file, "vehicle-documents");
+        verify(storageService).upload(file, "vehicle-documents");
     }
 
     @Test
     void uploadDocument_ShouldThrow_WhenDocumentTypeNull() {
 
-        AppException ex = assertThrows(
-                AppException.class,
-                () -> service.uploadDocument(
-                        UUID.randomUUID(),
-                        null,
-                        file
-                )
-        );
+        AppException ex = assertThrows(AppException.class, () -> service.uploadDocument(UUID.randomUUID(), null, file));
 
-        assertEquals(
-                ErrorCode.INVALID_DOCUMENT_TYPE,
-                ex.getErrorCode()
-        );
+        assertEquals(ErrorCode.INVALID_DOCUMENT_TYPE, ex.getErrorCode());
     }
 
     @Test
     void uploadDocument_ShouldThrow_WhenFileEmpty() {
 
-        when(file.getContentType())
-                .thenReturn("application/pdf");
+        when(file.getContentType()).thenReturn("application/pdf");
 
-        when(file.isEmpty())
-                .thenReturn(true);
+        when(file.isEmpty()).thenReturn(true);
 
-        AppException ex = assertThrows(
-                AppException.class,
-                () -> service.uploadDocument(
-                        UUID.randomUUID(),
-                        DocumentType.REGISTRATION,
-                        file
-                )
-        );
+        AppException ex = assertThrows(AppException.class,
+                                       () -> service.uploadDocument(UUID.randomUUID(), DocumentType.REGISTRATION,
+                                                                    file));
 
-        assertEquals(
-                ErrorCode.FILE_EMPTY,
-                ex.getErrorCode()
-        );
+        assertEquals(ErrorCode.FILE_EMPTY, ex.getErrorCode());
     }
 
     @Test
     void uploadDocument_ShouldDeleteUploadedFile_WhenSaveFails() {
 
         UUID vehicleId = UUID.randomUUID();
-
-        VehicleOwner owner = new VehicleOwner();
-        owner.setId(UUID.randomUUID());
+        UUID ownerId = UUID.randomUUID();
 
         Vehicle vehicle = new Vehicle();
 
-        when(file.getContentType())
-                .thenReturn("application/pdf");
+        when(file.getContentType()).thenReturn("application/pdf");
 
-        when(file.isEmpty())
-                .thenReturn(false);
+        when(file.isEmpty()).thenReturn(false);
 
-        when(file.getSize())
-                .thenReturn(1000L);
+        when(file.getSize()).thenReturn(1000L);
 
-        when(vehicleDocumentRepository
-                     .existsByVehicleIdAndDocumentTypeAndDeletedFalse(
-                             any(),
-                             any()
-                     ))
-                .thenReturn(false);
+        when(vehicleDocumentRepository.existsByVehicleIdAndDocumentTypeAndDeletedFalse(any(), any())).thenReturn(false);
 
-        when(ownerService.getCurrentOwner())
-                .thenReturn(owner);
+        when(ownerContextService.getCurrentOwnerId()).thenReturn(ownerId);
 
-        when(vehicleRepository
-                     .findByIdAndVehicleOwnerIdAndDeletedFalse(
-                             vehicleId,
-                             owner.getId()
-                     ))
-                .thenReturn(Optional.of(vehicle));
+        when(vehicleRepository.findByIdAndVehicleOwnerIdAndDeletedFalse(vehicleId, ownerId)).thenReturn(
+                Optional.of(vehicle));
 
-        when(vehicleDocumentRepository
-                     .countByVehicleIdAndDeletedFalse(vehicleId))
-                .thenReturn(0L);
+        when(vehicleDocumentRepository.countByVehicleIdAndDeletedFalse(vehicleId)).thenReturn(0L);
 
-        when(storageService.upload(any(), any()))
-                .thenReturn("uploaded-url");
+        when(storageService.upload(any(), any())).thenReturn("uploaded-url");
 
-        when(vehicleDocumentRepository.save(any()))
-                .thenThrow(RuntimeException.class);
+        when(vehicleDocumentRepository.save(any())).thenThrow(RuntimeException.class);
 
-        assertThrows(
-                RuntimeException.class,
-                () -> service.uploadDocument(
-                        vehicleId,
-                        DocumentType.REGISTRATION,
-                        file
-                )
-        );
+        assertThrows(RuntimeException.class, () -> service.uploadDocument(vehicleId, DocumentType.REGISTRATION, file));
 
-        verify(storageService)
-                .delete("uploaded-url");
+        verify(storageService).delete("uploaded-url");
     }
 
     @Test
@@ -232,36 +162,23 @@ class VehicleDocumentServiceImplTest {
 
         UUID ownerId = UUID.randomUUID();
 
-        VehicleOwner owner = new VehicleOwner();
-        owner.setId(ownerId);
 
         Vehicle vehicle = new Vehicle();
 
-        VehicleDocument document =
-                new VehicleDocument();
+        VehicleDocument document = new VehicleDocument();
 
-        VehicleDocumentResponse response =
-                mock(VehicleDocumentResponse.class);
+        VehicleDocumentResponse response = mock(VehicleDocumentResponse.class);
 
-        when(ownerService.getCurrentOwner())
-                .thenReturn(owner);
+        when(ownerContextService.getCurrentOwnerId()).thenReturn(ownerId);
 
-        when(vehicleRepository
-                     .findByIdAndVehicleOwnerIdAndDeletedFalse(
-                             vehicleId,
-                             ownerId
-                     ))
-                .thenReturn(Optional.of(vehicle));
+        when(vehicleRepository.findByIdAndVehicleOwnerIdAndDeletedFalse(vehicleId, ownerId)).thenReturn(
+                Optional.of(vehicle));
 
-        when(vehicleDocumentRepository
-                     .findByVehicleIdAndDeletedFalse(vehicleId))
-                .thenReturn(List.of(document));
+        when(vehicleDocumentRepository.findByVehicleIdAndDeletedFalse(vehicleId)).thenReturn(List.of(document));
 
-        when(vehicleDocumentMapper.toResponse(document))
-                .thenReturn(response);
+        when(vehicleDocumentMapper.toResponse(document)).thenReturn(response);
 
-        List<VehicleDocumentResponse> result =
-                service.getOwnerVehicleDocuments(vehicleId);
+        List<VehicleDocumentResponse> result = service.getOwnerVehicleDocuments(vehicleId);
 
         assertEquals(1, result.size());
     }
@@ -276,31 +193,22 @@ class VehicleDocumentServiceImplTest {
         VehicleOwner owner = new VehicleOwner();
         owner.setId(ownerId);
 
-        VehicleDocument document =
-                new VehicleDocument();
+        VehicleDocument document = new VehicleDocument();
 
-        document.setVerificationStatus(
-                VerificationStatus.PENDING
-        );
+        document.setVerificationStatus(VerificationStatus.PENDING);
 
         document.setDocumentUrl("url");
 
-        when(ownerService.getCurrentOwner())
-                .thenReturn(owner);
+        when(ownerContextService.getCurrentOwnerId()).thenReturn(ownerId);
 
-        when(vehicleDocumentRepository
-                     .findByIdAndVehicleVehicleOwnerIdAndDeletedFalse(
-                             documentId,
-                             ownerId
-                     ))
-                .thenReturn(Optional.of(document));
+        when(vehicleDocumentRepository.findByIdAndVehicleVehicleOwnerIdAndDeletedFalse(documentId, ownerId)).thenReturn(
+                Optional.of(document));
 
         service.deleteDocument(documentId);
 
         assertTrue(document.isDeleted());
 
-        verify(storageService)
-                .delete("url");
+        verify(storageService).delete("url");
     }
 
     @Test
@@ -310,55 +218,32 @@ class VehicleDocumentServiceImplTest {
 
         UUID ownerId = UUID.randomUUID();
 
-        VehicleOwner owner = new VehicleOwner();
-        owner.setId(ownerId);
 
-        VehicleDocument document =
-                new VehicleDocument();
+        VehicleDocument document = new VehicleDocument();
 
-        document.setVerificationStatus(
-                VerificationStatus.VERIFIED
-        );
+        document.setVerificationStatus(VerificationStatus.VERIFIED);
 
-        when(ownerService.getCurrentOwner())
-                .thenReturn(owner);
+        when(ownerContextService.getCurrentOwnerId()).thenReturn(ownerId);
 
-        when(vehicleDocumentRepository
-                     .findByIdAndVehicleVehicleOwnerIdAndDeletedFalse(
-                             documentId,
-                             ownerId
-                     ))
-                .thenReturn(Optional.of(document));
+        when(vehicleDocumentRepository.findByIdAndVehicleVehicleOwnerIdAndDeletedFalse(documentId, ownerId)).thenReturn(
+                Optional.of(document));
 
-        AppException ex = assertThrows(
-                AppException.class,
-                () -> service.deleteDocument(documentId)
-        );
+        AppException ex = assertThrows(AppException.class, () -> service.deleteDocument(documentId));
 
-        assertEquals(
-                ErrorCode.DOCUMENT_CANNOT_BE_DELETED,
-                ex.getErrorCode()
-        );
+        assertEquals(ErrorCode.DOCUMENT_CANNOT_BE_DELETED, ex.getErrorCode());
     }
 
     @Test
     void getPendingDocuments_ShouldReturnPage() {
 
-        Pageable pageable =
-                PageRequest.of(0, 10);
+        Pageable pageable = PageRequest.of(0, 10);
 
-        Page<VehicleDocument> page =
-                new PageImpl<>(List.of(new VehicleDocument()));
+        Page<VehicleDocument> page = new PageImpl<>(List.of(new VehicleDocument()));
 
-        when(vehicleDocumentRepository
-                     .findByVerificationStatusAndDeletedFalse(
-                             VerificationStatus.PENDING,
-                             pageable
-                     ))
-                .thenReturn(page);
+        when(vehicleDocumentRepository.findByVerificationStatusAndDeletedFalse(VerificationStatus.PENDING,
+                                                                               pageable)).thenReturn(page);
 
-        Page<VehicleDocumentResponse> result =
-                service.getPendingDocuments(pageable);
+        Page<VehicleDocumentResponse> result = service.getPendingDocuments(pageable);
 
         assertNotNull(result);
     }
@@ -369,46 +254,29 @@ class VehicleDocumentServiceImplTest {
 
         UUID vehicleId = UUID.randomUUID();
 
+        UUID ownerId = UUID.randomUUID();
+
         MultipartFile file = mock(MultipartFile.class);
 
-        VehicleOwner owner = new VehicleOwner();
-        owner.setId(UUID.randomUUID());
 
         when(file.getContentType()).thenReturn("application/pdf");
         when(file.isEmpty()).thenReturn(false);
         when(file.getSize()).thenReturn(1024L);
+        when(ownerContextService.getCurrentOwnerId()).thenReturn(ownerId);
 
-        when(vehicleDocumentRepository
-                     .existsByVehicleIdAndDocumentTypeAndDeletedFalse(
-                             vehicleId,
-                             DocumentType.REGISTRATION
-                     ))
-                .thenReturn(false);
-
-        when(ownerService.getCurrentOwner())
-                .thenReturn(owner);
-
-        when(vehicleRepository
-                     .findByIdAndVehicleOwnerIdAndDeletedFalse(
-                             vehicleId,
-                             owner.getId()
-                     ))
-                .thenReturn(Optional.empty());
+        when(vehicleDocumentRepository.existsByVehicleIdAndDocumentTypeAndDeletedFalse(vehicleId,
+                                                                                       DocumentType.REGISTRATION)).thenReturn(
+                false);
 
 
-        AppException exception = assertThrows(
-                AppException.class,
-                () -> service.uploadDocument(
-                        vehicleId,
-                        DocumentType.REGISTRATION,
-                        file
-                )
-        );
+        when(vehicleRepository.findByIdAndVehicleOwnerIdAndDeletedFalse(vehicleId, ownerId)).thenReturn(
+                Optional.empty());
 
-        assertEquals(
-                ErrorCode.VEHICLE_NOT_FOUND,
-                exception.getErrorCode()
-        );
+
+        AppException exception = assertThrows(AppException.class,
+                                              () -> service.uploadDocument(vehicleId, DocumentType.REGISTRATION, file));
+
+        assertEquals(ErrorCode.VEHICLE_NOT_FOUND, exception.getErrorCode());
     }
 
     @Test
@@ -423,26 +291,14 @@ class VehicleDocumentServiceImplTest {
         when(file.isEmpty()).thenReturn(false);
         when(file.getSize()).thenReturn(1024L);
 
-        when(vehicleDocumentRepository
-                     .existsByVehicleIdAndDocumentTypeAndDeletedFalse(
-                             vehicleId,
-                             DocumentType.REGISTRATION
-                     ))
-                .thenReturn(true);
+        when(vehicleDocumentRepository.existsByVehicleIdAndDocumentTypeAndDeletedFalse(vehicleId,
+                                                                                       DocumentType.REGISTRATION)).thenReturn(
+                true);
 
-        AppException exception = assertThrows(
-                AppException.class,
-                () -> service.uploadDocument(
-                        vehicleId,
-                        DocumentType.REGISTRATION,
-                        file
-                )
-        );
+        AppException exception = assertThrows(AppException.class,
+                                              () -> service.uploadDocument(vehicleId, DocumentType.REGISTRATION, file));
 
-        assertEquals(
-                ErrorCode.DOCUMENT_ALREADY_EXISTS,
-                exception.getErrorCode()
-        );
+        assertEquals(ErrorCode.DOCUMENT_ALREADY_EXISTS, exception.getErrorCode());
     }
 
     @Test
@@ -457,19 +313,10 @@ class VehicleDocumentServiceImplTest {
         when(file.isEmpty()).thenReturn(false);
         when(file.getSize()).thenReturn(20L * 1024 * 1024);
 
-        AppException exception = assertThrows(
-                AppException.class,
-                () -> service.uploadDocument(
-                        vehicleId,
-                        DocumentType.REGISTRATION,
-                        file
-                )
-        );
+        AppException exception = assertThrows(AppException.class,
+                                              () -> service.uploadDocument(vehicleId, DocumentType.REGISTRATION, file));
 
-        assertEquals(
-                ErrorCode.FILE_TOO_LARGE,
-                exception.getErrorCode()
-        );
+        assertEquals(ErrorCode.FILE_TOO_LARGE, exception.getErrorCode());
 
         verify(file).getSize();
     }
@@ -480,35 +327,24 @@ class VehicleDocumentServiceImplTest {
 
         UUID vehicleId = UUID.randomUUID();
 
-        VehicleOwner owner = new VehicleOwner();
-        owner.setId(UUID.randomUUID());
+        UUID ownerId = UUID.randomUUID();
 
         Vehicle vehicle = new Vehicle();
 
         VehicleDocument document = new VehicleDocument();
 
-        VehicleDocumentResponse response =
-                mock(VehicleDocumentResponse.class);
+        VehicleDocumentResponse response = mock(VehicleDocumentResponse.class);
 
-        when(ownerService.getCurrentOwner())
-                .thenReturn(owner);
+        when(ownerContextService.getCurrentOwnerId()).thenReturn(ownerId);
 
-        when(vehicleRepository
-                     .findByIdAndVehicleOwnerIdAndDeletedFalse(
-                             vehicleId,
-                             owner.getId()
-                     ))
-                .thenReturn(Optional.of(vehicle));
+        when(vehicleRepository.findByIdAndVehicleOwnerIdAndDeletedFalse(vehicleId, ownerId)).thenReturn(
+                Optional.of(vehicle));
 
-        when(vehicleDocumentRepository
-                     .findByVehicleIdAndDeletedFalse(vehicleId))
-                .thenReturn(List.of(document));
+        when(vehicleDocumentRepository.findByVehicleIdAndDeletedFalse(vehicleId)).thenReturn(List.of(document));
 
-        when(vehicleDocumentMapper.toResponse(document))
-                .thenReturn(response);
+        when(vehicleDocumentMapper.toResponse(document)).thenReturn(response);
 
-        List<VehicleDocumentResponse> result =
-                service.getOwnerVehicleDocuments(vehicleId);
+        List<VehicleDocumentResponse> result = service.getOwnerVehicleDocuments(vehicleId);
 
         assertEquals(1, result.size());
     }
@@ -519,28 +355,16 @@ class VehicleDocumentServiceImplTest {
 
         UUID vehicleId = UUID.randomUUID();
 
-        VehicleOwner owner = new VehicleOwner();
-        owner.setId(UUID.randomUUID());
+        UUID ownerId = UUID.randomUUID();
 
-        when(ownerService.getCurrentOwner())
-                .thenReturn(owner);
+        when(ownerContextService.getCurrentOwnerId()).thenReturn(ownerId);
 
-        when(vehicleRepository
-                     .findByIdAndVehicleOwnerIdAndDeletedFalse(
-                             vehicleId,
-                             owner.getId()
-                     ))
-                .thenReturn(Optional.empty());
+        when(vehicleRepository.findByIdAndVehicleOwnerIdAndDeletedFalse(vehicleId, ownerId)).thenReturn(
+                Optional.empty());
 
-        AppException exception = assertThrows(
-                AppException.class,
-                () -> service.getOwnerVehicleDocuments(vehicleId)
-        );
+        AppException exception = assertThrows(AppException.class, () -> service.getOwnerVehicleDocuments(vehicleId));
 
-        assertEquals(
-                ErrorCode.VEHICLE_NOT_FOUND,
-                exception.getErrorCode()
-        );
+        assertEquals(ErrorCode.VEHICLE_NOT_FOUND, exception.getErrorCode());
     }
 
     @Test
@@ -553,22 +377,15 @@ class VehicleDocumentServiceImplTest {
 
         VehicleDocument document = new VehicleDocument();
 
-        VehicleDocumentResponse response =
-                mock(VehicleDocumentResponse.class);
+        VehicleDocumentResponse response = mock(VehicleDocumentResponse.class);
 
-        when(vehicleRepository
-                     .findByIdAndDeletedFalse(vehicleId))
-                .thenReturn(Optional.of(vehicle));
+        when(vehicleRepository.findByIdAndDeletedFalse(vehicleId)).thenReturn(Optional.of(vehicle));
 
-        when(vehicleDocumentRepository
-                     .findByVehicleIdAndDeletedFalse(vehicleId))
-                .thenReturn(List.of(document));
+        when(vehicleDocumentRepository.findByVehicleIdAndDeletedFalse(vehicleId)).thenReturn(List.of(document));
 
-        when(vehicleDocumentMapper.toResponse(document))
-                .thenReturn(response);
+        when(vehicleDocumentMapper.toResponse(document)).thenReturn(response);
 
-        List<VehicleDocumentResponse> result =
-                service.getAdminVehicleDocuments(vehicleId);
+        List<VehicleDocumentResponse> result = service.getAdminVehicleDocuments(vehicleId);
 
         assertEquals(1, result.size());
     }
@@ -579,19 +396,11 @@ class VehicleDocumentServiceImplTest {
 
         UUID vehicleId = UUID.randomUUID();
 
-        when(vehicleRepository
-                     .findByIdAndDeletedFalse(vehicleId))
-                .thenReturn(Optional.empty());
+        when(vehicleRepository.findByIdAndDeletedFalse(vehicleId)).thenReturn(Optional.empty());
 
-        AppException exception = assertThrows(
-                AppException.class,
-                () -> service.getAdminVehicleDocuments(vehicleId)
-        );
+        AppException exception = assertThrows(AppException.class, () -> service.getAdminVehicleDocuments(vehicleId));
 
-        assertEquals(
-                ErrorCode.VEHICLE_NOT_FOUND,
-                exception.getErrorCode()
-        );
+        assertEquals(ErrorCode.VEHICLE_NOT_FOUND, exception.getErrorCode());
     }
 
     @Test
@@ -600,28 +409,16 @@ class VehicleDocumentServiceImplTest {
 
         UUID documentId = UUID.randomUUID();
 
-        VehicleOwner owner = new VehicleOwner();
-        owner.setId(UUID.randomUUID());
+        UUID ownerId = UUID.randomUUID();
 
-        when(ownerService.getCurrentOwner())
-                .thenReturn(owner);
+        when(ownerContextService.getCurrentOwnerId()).thenReturn(ownerId);
 
-        when(vehicleDocumentRepository
-                     .findByIdAndVehicleVehicleOwnerIdAndDeletedFalse(
-                             documentId,
-                             owner.getId()
-                     ))
-                .thenReturn(Optional.empty());
+        when(vehicleDocumentRepository.findByIdAndVehicleVehicleOwnerIdAndDeletedFalse(documentId, ownerId)).thenReturn(
+                Optional.empty());
 
-        AppException exception = assertThrows(
-                AppException.class,
-                () -> service.deleteDocument(documentId)
-        );
+        AppException exception = assertThrows(AppException.class, () -> service.deleteDocument(documentId));
 
-        assertEquals(
-                ErrorCode.VEHICLE_DOCUMENT_NOT_FOUND,
-                exception.getErrorCode()
-        );
+        assertEquals(ErrorCode.VEHICLE_DOCUMENT_NOT_FOUND, exception.getErrorCode());
     }
 
     @Test
@@ -632,8 +429,7 @@ class VehicleDocumentServiceImplTest {
 
         MultipartFile file = mock(MultipartFile.class);
 
-        VehicleOwner owner = new VehicleOwner();
-        owner.setId(UUID.randomUUID());
+        UUID ownerId = UUID.randomUUID();
 
         Vehicle vehicle = new Vehicle();
 
@@ -641,44 +437,24 @@ class VehicleDocumentServiceImplTest {
         when(file.isEmpty()).thenReturn(false);
         when(file.getSize()).thenReturn(1024L);
 
-        when(vehicleDocumentRepository
-                     .existsByVehicleIdAndDocumentTypeAndDeletedFalse(
-                             vehicleId,
-                             DocumentType.REGISTRATION
-                     ))
-                .thenReturn(false);
+        when(vehicleDocumentRepository.existsByVehicleIdAndDocumentTypeAndDeletedFalse(vehicleId,
+                                                                                       DocumentType.REGISTRATION)).thenReturn(
+                false);
 
-        when(ownerService.getCurrentOwner())
-                .thenReturn(owner);
+        when(ownerContextService.getCurrentOwnerId()).thenReturn(ownerId);
 
-        when(vehicleRepository
-                     .findByIdAndVehicleOwnerIdAndDeletedFalse(
-                             vehicleId,
-                             owner.getId()
-                     ))
-                .thenReturn(Optional.of(vehicle));
+        when(vehicleRepository.findByIdAndVehicleOwnerIdAndDeletedFalse(vehicleId, ownerId)).thenReturn(
+                Optional.of(vehicle));
 
-        when(vehicleDocumentRepository
-                     .countByVehicleIdAndDeletedFalse(vehicleId))
-                .thenReturn(0L);
+        when(vehicleDocumentRepository.countByVehicleIdAndDeletedFalse(vehicleId)).thenReturn(0L);
 
-        when(storageService.upload(file, "vehicle-documents"))
-                .thenReturn("uploaded-url");
+        when(storageService.upload(file, "vehicle-documents")).thenReturn("uploaded-url");
 
-        when(vehicleDocumentRepository.save(any()))
-                .thenThrow(new RuntimeException("DB Error"));
+        when(vehicleDocumentRepository.save(any())).thenThrow(new RuntimeException("DB Error"));
 
-        assertThrows(
-                RuntimeException.class,
-                () -> service.uploadDocument(
-                        vehicleId,
-                        DocumentType.REGISTRATION,
-                        file
-                )
-        );
+        assertThrows(RuntimeException.class, () -> service.uploadDocument(vehicleId, DocumentType.REGISTRATION, file));
 
-        verify(storageService)
-                .delete("uploaded-url");
+        verify(storageService).delete("uploaded-url");
     }
 
     @Test
@@ -687,41 +463,24 @@ class VehicleDocumentServiceImplTest {
 
         when(file.getContentType()).thenReturn(null);
 
-        AppException ex = assertThrows(
-                AppException.class,
-                () -> service.uploadDocument(
-                        UUID.randomUUID(),
-                        DocumentType.REGISTRATION,
-                        file
-                )
-        );
+        AppException ex = assertThrows(AppException.class,
+                                       () -> service.uploadDocument(UUID.randomUUID(), DocumentType.REGISTRATION,
+                                                                    file));
 
-        assertEquals(
-                ErrorCode.INVALID_DOCUMENT_TYPE,
-                ex.getErrorCode()
-        );
+        assertEquals(ErrorCode.INVALID_DOCUMENT_TYPE, ex.getErrorCode());
     }
 
     @Test
     @DisplayName("Should throw exception when file type is invalid")
     void uploadDocument_ShouldThrow_WhenInvalidContentType() {
 
-        when(file.getContentType())
-                .thenReturn("application/zip");
+        when(file.getContentType()).thenReturn("application/zip");
 
-        AppException ex = assertThrows(
-                AppException.class,
-                () -> service.uploadDocument(
-                        UUID.randomUUID(),
-                        DocumentType.REGISTRATION,
-                        file
-                )
-        );
+        AppException ex = assertThrows(AppException.class,
+                                       () -> service.uploadDocument(UUID.randomUUID(), DocumentType.REGISTRATION,
+                                                                    file));
 
-        assertEquals(
-                ErrorCode.INVALID_DOCUMENT_TYPE,
-                ex.getErrorCode()
-        );
+        assertEquals(ErrorCode.INVALID_DOCUMENT_TYPE, ex.getErrorCode());
     }
 
     @Test
@@ -730,47 +489,28 @@ class VehicleDocumentServiceImplTest {
 
         UUID vehicleId = UUID.randomUUID();
 
-        VehicleOwner owner = new VehicleOwner();
-        owner.setId(UUID.randomUUID());
-
+        UUID ownerId = UUID.randomUUID();
         Vehicle vehicle = new Vehicle();
 
         when(file.getContentType()).thenReturn("application/pdf");
         when(file.isEmpty()).thenReturn(false);
         when(file.getSize()).thenReturn(1024L);
 
-        when(vehicleDocumentRepository
-                     .existsByVehicleIdAndDocumentTypeAndDeletedFalse(
-                             vehicleId,
-                             DocumentType.REGISTRATION))
-                .thenReturn(false);
+        when(vehicleDocumentRepository.existsByVehicleIdAndDocumentTypeAndDeletedFalse(vehicleId,
+                                                                                       DocumentType.REGISTRATION)).thenReturn(
+                false);
 
-        when(ownerService.getCurrentOwner())
-                .thenReturn(owner);
+        when(ownerContextService.getCurrentOwnerId()).thenReturn(ownerId);
 
-        when(vehicleRepository
-                     .findByIdAndVehicleOwnerIdAndDeletedFalse(
-                             vehicleId,
-                             owner.getId()))
-                .thenReturn(Optional.of(vehicle));
+        when(vehicleRepository.findByIdAndVehicleOwnerIdAndDeletedFalse(vehicleId, ownerId)).thenReturn(
+                Optional.of(vehicle));
 
-        when(vehicleDocumentRepository
-                     .countByVehicleIdAndDeletedFalse(vehicleId))
-                .thenReturn(10L);
+        when(vehicleDocumentRepository.countByVehicleIdAndDeletedFalse(vehicleId)).thenReturn(10L);
 
-        AppException ex = assertThrows(
-                AppException.class,
-                () -> service.uploadDocument(
-                        vehicleId,
-                        DocumentType.REGISTRATION,
-                        file
-                )
-        );
+        AppException ex = assertThrows(AppException.class,
+                                       () -> service.uploadDocument(vehicleId, DocumentType.REGISTRATION, file));
 
-        assertEquals(
-                ErrorCode.MAX_DOCUMENTS_EXCEEDED,
-                ex.getErrorCode()
-        );
+        assertEquals(ErrorCode.MAX_DOCUMENTS_EXCEEDED, ex.getErrorCode());
     }
 
     @Test
@@ -781,20 +521,13 @@ class VehicleDocumentServiceImplTest {
 
         VehicleDocument document = new VehicleDocument();
 
-        document.setVerificationStatus(
-                VerificationStatus.PENDING
-        );
+        document.setVerificationStatus(VerificationStatus.PENDING);
 
-        when(vehicleDocumentRepository
-                     .findByIdAndDeletedFalse(documentId))
-                .thenReturn(Optional.of(document));
+        when(vehicleDocumentRepository.findByIdAndDeletedFalse(documentId)).thenReturn(Optional.of(document));
 
         service.approveDocument(documentId);
 
-        assertEquals(
-                VerificationStatus.VERIFIED,
-                document.getVerificationStatus()
-        );
+        assertEquals(VerificationStatus.VERIFIED, document.getVerificationStatus());
 
         assertNotNull(document.getVerifiedAt());
     }
@@ -805,19 +538,11 @@ class VehicleDocumentServiceImplTest {
 
         UUID documentId = UUID.randomUUID();
 
-        when(vehicleDocumentRepository
-                     .findByIdAndDeletedFalse(documentId))
-                .thenReturn(Optional.empty());
+        when(vehicleDocumentRepository.findByIdAndDeletedFalse(documentId)).thenReturn(Optional.empty());
 
-        AppException exception = assertThrows(
-                AppException.class,
-                () -> service.approveDocument(documentId)
-        );
+        AppException exception = assertThrows(AppException.class, () -> service.approveDocument(documentId));
 
-        assertEquals(
-                ErrorCode.VEHICLE_DOCUMENT_NOT_FOUND,
-                exception.getErrorCode()
-        );
+        assertEquals(ErrorCode.VEHICLE_DOCUMENT_NOT_FOUND, exception.getErrorCode());
     }
 
     @Test
@@ -828,20 +553,13 @@ class VehicleDocumentServiceImplTest {
 
         VehicleDocument document = new VehicleDocument();
 
-        document.setVerificationStatus(
-                VerificationStatus.PENDING
-        );
+        document.setVerificationStatus(VerificationStatus.PENDING);
 
-        when(vehicleDocumentRepository
-                     .findByIdAndDeletedFalse(documentId))
-                .thenReturn(Optional.of(document));
+        when(vehicleDocumentRepository.findByIdAndDeletedFalse(documentId)).thenReturn(Optional.of(document));
 
         service.rejectDocument(documentId);
 
-        assertEquals(
-                VerificationStatus.REJECTED,
-                document.getVerificationStatus()
-        );
+        assertEquals(VerificationStatus.REJECTED, document.getVerificationStatus());
 
         assertNotNull(document.getVerifiedAt());
     }
@@ -854,22 +572,12 @@ class VehicleDocumentServiceImplTest {
 
         VehicleDocument document = new VehicleDocument();
 
-        document.setVerificationStatus(
-                VerificationStatus.VERIFIED
-        );
+        document.setVerificationStatus(VerificationStatus.VERIFIED);
 
-        when(vehicleDocumentRepository
-                     .findByIdAndDeletedFalse(documentId))
-                .thenReturn(Optional.of(document));
+        when(vehicleDocumentRepository.findByIdAndDeletedFalse(documentId)).thenReturn(Optional.of(document));
 
-        AppException exception = assertThrows(
-                AppException.class,
-                () -> service.rejectDocument(documentId)
-        );
+        AppException exception = assertThrows(AppException.class, () -> service.rejectDocument(documentId));
 
-        assertEquals(
-                ErrorCode.DOCUMENT_ALREADY_PROCESSED,
-                exception.getErrorCode()
-        );
+        assertEquals(ErrorCode.DOCUMENT_ALREADY_PROCESSED, exception.getErrorCode());
     }
 }

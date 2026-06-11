@@ -4,7 +4,7 @@ import com.rentalplatform.backend.common.exception.AppException;
 import com.rentalplatform.backend.common.exception.ErrorCode;
 import com.rentalplatform.backend.common.upload.StorageService;
 import com.rentalplatform.backend.owner.entity.VehicleOwner;
-import com.rentalplatform.backend.owner.service.OwnerService;
+import com.rentalplatform.backend.owner.service.OwnerContextService;
 import com.rentalplatform.backend.vehicle.dto.response.VehicleImageResponse;
 import com.rentalplatform.backend.vehicle.entity.Vehicle;
 import com.rentalplatform.backend.vehicle.entity.VehicleImage;
@@ -40,7 +40,7 @@ class VehicleImageServiceImplTest {
     private VehicleImageMapper vehicleImageMapper;
 
     @Mock
-    private OwnerService ownerService;
+    private OwnerContextService ownerContextService;
 
     @Mock
     private StorageService storageService;
@@ -71,8 +71,8 @@ class VehicleImageServiceImplTest {
         VehicleImageResponse response =
                 mock(VehicleImageResponse.class);
 
-        when(ownerService.getCurrentOwner())
-                .thenReturn(owner);
+        when(ownerContextService.getCurrentOwnerId())
+                .thenReturn(ownerId);
 
         when(vehicleRepository
                      .findByIdAndVehicleOwnerIdAndDeletedFalse(
@@ -199,16 +199,15 @@ class VehicleImageServiceImplTest {
         when(file.getSize()).thenReturn(1024L);
         when(file.getContentType()).thenReturn("image/jpeg");
 
-        VehicleOwner owner = new VehicleOwner();
-        owner.setId(UUID.randomUUID());
+        UUID ownerId = UUID.randomUUID();
 
-        when(ownerService.getCurrentOwner())
-                .thenReturn(owner);
+        when(ownerContextService.getCurrentOwnerId())
+                .thenReturn(ownerId);
 
         when(vehicleRepository
                      .findByIdAndVehicleOwnerIdAndDeletedFalse(
                              vehicleId,
-                             owner.getId()
+                             ownerId
                      ))
                 .thenReturn(Optional.empty());
 
@@ -239,18 +238,19 @@ class VehicleImageServiceImplTest {
         when(file.getSize()).thenReturn(1024L);
         when(file.getContentType()).thenReturn("image/jpeg");
 
-        VehicleOwner owner = new VehicleOwner();
-        owner.setId(UUID.randomUUID());
+        UUID ownerId = UUID.randomUUID();
+
+        when(ownerContextService.getCurrentOwnerId())
+                .thenReturn(ownerId);
 
         Vehicle vehicle = new Vehicle();
 
-        when(ownerService.getCurrentOwner())
-                .thenReturn(owner);
+
 
         when(vehicleRepository
                      .findByIdAndVehicleOwnerIdAndDeletedFalse(
                              vehicleId,
-                             owner.getId()
+                             ownerId
                      ))
                 .thenReturn(Optional.of(vehicle));
 
@@ -320,19 +320,19 @@ class VehicleImageServiceImplTest {
 
         UUID imageId = UUID.randomUUID();
 
-        VehicleOwner owner = new VehicleOwner();
-        owner.setId(UUID.randomUUID());
+        UUID ownerId = UUID.randomUUID();
 
+        when(ownerContextService.getCurrentOwnerId())
+                .thenReturn(ownerId);
         VehicleImage image = new VehicleImage();
         image.setImageUrl("image-url");
 
-        when(ownerService.getCurrentOwner())
-                .thenReturn(owner);
+
 
         when(vehicleImageRepository
                      .findByIdAndVehicleVehicleOwnerId(
                              imageId,
-                             owner.getId()
+                             ownerId
                      ))
                 .thenReturn(Optional.of(image));
 
@@ -351,16 +351,15 @@ class VehicleImageServiceImplTest {
 
         UUID imageId = UUID.randomUUID();
 
-        VehicleOwner owner = new VehicleOwner();
-        owner.setId(UUID.randomUUID());
+        UUID ownerId = UUID.randomUUID();
 
-        when(ownerService.getCurrentOwner())
-                .thenReturn(owner);
+        when(ownerContextService.getCurrentOwnerId())
+                .thenReturn(ownerId);
 
         when(vehicleImageRepository
                      .findByIdAndVehicleVehicleOwnerId(
                              imageId,
-                             owner.getId()
+                             ownerId
                      ))
                 .thenReturn(Optional.empty());
 

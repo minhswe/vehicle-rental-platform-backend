@@ -15,31 +15,19 @@ public interface VehicleDocumentService {
     // VEHICLE OWNER
     //=====================================
 
-    VehicleDocumentResponse uploadDocument(
-            UUID vehicleId,
-            DocumentType documentType,
-            MultipartFile file
-    );
+    VehicleDocumentResponse uploadDocument(UUID vehicleId, DocumentType documentType, MultipartFile file);
 
-    List<VehicleDocumentResponse> getOwnerVehicleDocuments(
-            UUID vehicleId
-    );
+    List<VehicleDocumentResponse> getOwnerVehicleDocuments(UUID vehicleId);
 
-    void deleteDocument(
-            UUID documentId
-    );
+    void deleteDocument(UUID documentId);
 
     //=====================================
     // ADMIN
     //=====================================
 
-    List<VehicleDocumentResponse> getAdminVehicleDocuments(
-            UUID vehicleId
-    );
+    List<VehicleDocumentResponse> getAdminVehicleDocuments(UUID vehicleId);
 
-    Page<VehicleDocumentResponse> getPendingDocuments(
-            Pageable pageable
-    );
+    Page<VehicleDocumentResponse> getPendingDocuments(Pageable pageable);
 
     void approveDocument(UUID documentId);
 

@@ -3,7 +3,7 @@ package com.rentalplatform.backend.vehicle.service;
 import com.rentalplatform.backend.common.exception.AppException;
 import com.rentalplatform.backend.common.exception.ErrorCode;
 import com.rentalplatform.backend.owner.entity.VehicleOwner;
-import com.rentalplatform.backend.owner.service.OwnerService;
+import com.rentalplatform.backend.owner.service.OwnerContextService;
 import com.rentalplatform.backend.vehicle.dto.request.CreateVehicleRequest;
 import com.rentalplatform.backend.vehicle.dto.request.UpdateVehicleRequest;
 import com.rentalplatform.backend.vehicle.dto.response.VehicleResponse;
@@ -28,7 +28,7 @@ public class VehicleServiceImpl implements VehicleService {
 
     private final VehicleRepository vehicleRepository;
     private final VehicleMapper vehicleMapper;
-    private final OwnerService ownerService;
+    private final OwnerContextService ownerContextService;
 
     // =========================
     // CREATE
@@ -37,15 +37,11 @@ public class VehicleServiceImpl implements VehicleService {
     @Override
     public VehicleResponse createVehicle(CreateVehicleRequest request) {
 
-        request.setLicensePlate(
-                normalizeLicensePlate(
-                        request.getLicensePlate()
-                )
-        );
+        request.setLicensePlate(normalizeLicensePlate(request.getLicensePlate()));
 
         validateCreateVehicle(request);
 
-        VehicleOwner owner = ownerService.getCurrentOwner();
+        VehicleOwner owner = ownerContextService.getCurrentOwner();
 
 
         Vehicle vehicle = vehicleMapper.toEntity(request);
@@ -64,12 +60,8 @@ public class VehicleServiceImpl implements VehicleService {
     @Override
     public Page<VehicleResponse> getAvailableVehicles(Pageable pageable) {
 
-        return vehicleRepository
-                .findByStatusAndDeletedFalse(
-                        VehicleStatus.AVAILABLE,
-                        pageable
-                )
-                .map(vehicleMapper::toResponse);
+        return vehicleRepository.findByStatusAndDeletedFalse(VehicleStatus.AVAILABLE, pageable)
+                                .map(vehicleMapper::toResponse);
     }
 
     // =========================
@@ -78,9 +70,8 @@ public class VehicleServiceImpl implements VehicleService {
     @Override
     public VehicleResponse getVehicleDetail(UUID vehicleId) {
 
-        Vehicle vehicle = vehicleRepository
-                .findByIdAndStatusAndDeletedFalse(vehicleId, VehicleStatus.AVAILABLE)
-                .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_FOUND));
+        Vehicle vehicle = vehicleRepository.findByIdAndStatusAndDeletedFalse(vehicleId, VehicleStatus.AVAILABLE)
+                                           .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_FOUND));
 
         return vehicleMapper.toResponse(vehicle);
     }
@@ -91,12 +82,10 @@ public class VehicleServiceImpl implements VehicleService {
     @Override
     public Page<VehicleResponse> getOwnerVehicles(Pageable pageable) {
 
-        UUID ownerId = ownerService.getCurrentOwner()
-                                   .getId();
+        UUID ownerId = ownerContextService.getCurrentOwnerId();
 
-        return vehicleRepository
-                .findByVehicleOwnerIdAndDeletedFalse(ownerId, pageable)
-                .map(vehicleMapper::toResponse);
+        return vehicleRepository.findByVehicleOwnerIdAndDeletedFalse(ownerId, pageable)
+                                .map(vehicleMapper::toResponse);
     }
 
     // =========================
@@ -105,7 +94,7 @@ public class VehicleServiceImpl implements VehicleService {
     @Override
     public VehicleResponse getOwnerVehicleDetail(UUID vehicleId) {
 
-        Vehicle vehicle = getOwnedVehicle(vehicleId);
+        Vehicle vehicle = findOwnerVehicle(vehicleId);
 
         return vehicleMapper.toResponse(vehicle);
     }
@@ -118,21 +107,14 @@ public class VehicleServiceImpl implements VehicleService {
     @Override
     public VehicleResponse updateVehicle(UUID vehicleId, UpdateVehicleRequest request) {
 
-        request.setLicensePlate(
-                normalizeLicensePlate(
-                        request.getLicensePlate()
-                )
-        );
+        request.setLicensePlate(normalizeLicensePlate(request.getLicensePlate()));
 
-        Vehicle vehicle = getOwnedVehicle(vehicleId);
+        Vehicle vehicle = findOwnerVehicle(vehicleId);
 
 
         validateUpdateVehicle(vehicle, request);
 
-        vehicleMapper.updateVehicle(
-                request,
-                vehicle
-        );
+        vehicleMapper.updateVehicle(request, vehicle);
 
         return vehicleMapper.toResponse(vehicle);
     }
@@ -144,12 +126,10 @@ public class VehicleServiceImpl implements VehicleService {
     @Override
     public void softDeleteVehicle(UUID vehicleId) {
 
-        Vehicle vehicle = getOwnedVehicle(vehicleId);
+        Vehicle vehicle = findOwnerVehicle(vehicleId);
 
         if (vehicle.getStatus() == VehicleStatus.RENTED) {
-            throw new AppException(
-                    ErrorCode.VEHICLE_NOT_DELETABLE
-            );
+            throw new AppException(ErrorCode.VEHICLE_NOT_DELETABLE);
         }
 
         vehicle.markDeleted();
@@ -159,10 +139,9 @@ public class VehicleServiceImpl implements VehicleService {
     // =========================
     // OWNER VALIDATION
     // =========================
-    private Vehicle getOwnedVehicle(UUID vehicleId) {
+    private Vehicle findOwnerVehicle(UUID vehicleId) {
 
-        UUID ownerId = ownerService.getCurrentOwner()
-                                   .getId();
+        UUID ownerId = ownerContextService.getCurrentOwnerId();
 
         return vehicleRepository.findByIdAndVehicleOwnerIdAndDeletedFalse(vehicleId, ownerId)
                                 .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_FOUND));
@@ -175,18 +154,13 @@ public class VehicleServiceImpl implements VehicleService {
     // =========================
     // VALIDATE YEAR OF MANUFACTURE
     // =========================
-    private void validateYearOfManufacture(
-            Integer year
-    ) {
+    private void validateYearOfManufacture(Integer year) {
         int currentYear = Year.now()
                               .getValue();
 
-        if (year < 1990
-            || year > currentYear + 1) {
+        if (year < 1990 || year > currentYear + 1) {
 
-            throw new AppException(
-                    ErrorCode.INVALID_VEHICLE_YEAR
-            );
+            throw new AppException(ErrorCode.INVALID_VEHICLE_YEAR);
         }
     }
 
@@ -252,9 +226,8 @@ public class VehicleServiceImpl implements VehicleService {
             return null;
         }
 
-        return licensePlate
-                .trim()
-                .toUpperCase();
+        return licensePlate.trim()
+                           .toUpperCase();
     }
 
 

@@ -4,6 +4,7 @@ import com.rentalplatform.backend.common.exception.AppException;
 import com.rentalplatform.backend.common.exception.ErrorCode;
 import com.rentalplatform.backend.common.upload.StorageService;
 import com.rentalplatform.backend.owner.entity.VehicleOwner;
+import com.rentalplatform.backend.owner.service.OwnerContextService;
 import com.rentalplatform.backend.owner.service.OwnerService;
 import com.rentalplatform.backend.vehicle.dto.response.VehicleDocumentResponse;
 import com.rentalplatform.backend.vehicle.entity.Vehicle;
@@ -43,6 +44,8 @@ public class VehicleDocumentServiceImpl implements VehicleDocumentService {
     private final VehicleDocumentMapper vehicleDocumentMapper;
 
     private final OwnerService ownerService;
+
+    private final OwnerContextService ownerContextService;
 
     private final StorageService storageService;
 
@@ -92,9 +95,9 @@ public class VehicleDocumentServiceImpl implements VehicleDocumentService {
             }
 
 
-            VehicleOwner owner = ownerService.getCurrentOwner();
+            UUID ownerId = ownerContextService.getCurrentOwnerId();
 
-            Vehicle vehicle = vehicleRepository.findByIdAndVehicleOwnerIdAndDeletedFalse(vehicleId, owner.getId())
+            Vehicle vehicle = vehicleRepository.findByIdAndVehicleOwnerIdAndDeletedFalse(vehicleId, ownerId)
                                                .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_FOUND));
 
             long documentCount = vehicleDocumentRepository.countByVehicleIdAndDeletedFalse(vehicleId);
@@ -131,13 +134,12 @@ public class VehicleDocumentServiceImpl implements VehicleDocumentService {
     @Override
     public List<VehicleDocumentResponse> getOwnerVehicleDocuments(UUID vehicleId) {
 
-        VehicleOwner owner =
-                ownerService.getCurrentOwner();
+        UUID ownerId = ownerContextService.getCurrentOwnerId();
 
         vehicleRepository
                 .findByIdAndVehicleOwnerIdAndDeletedFalse(
                         vehicleId,
-                        owner.getId()
+                        ownerId
                 )
                 .orElseThrow(() ->
                                      new AppException(
@@ -159,10 +161,10 @@ public class VehicleDocumentServiceImpl implements VehicleDocumentService {
     public void deleteDocument(UUID documentId) {
 
 
-        VehicleOwner owner = ownerService.getCurrentOwner();
+        UUID ownerId = ownerContextService.getCurrentOwnerId();
 
         VehicleDocument document =
-                vehicleDocumentRepository.findByIdAndVehicleVehicleOwnerIdAndDeletedFalse(documentId, owner.getId())
+                vehicleDocumentRepository.findByIdAndVehicleVehicleOwnerIdAndDeletedFalse(documentId, ownerId)
                                          .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_DOCUMENT_NOT_FOUND));
 
         if (

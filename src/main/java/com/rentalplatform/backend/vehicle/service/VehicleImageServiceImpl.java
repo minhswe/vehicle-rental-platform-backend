@@ -3,8 +3,7 @@ package com.rentalplatform.backend.vehicle.service;
 import com.rentalplatform.backend.common.exception.AppException;
 import com.rentalplatform.backend.common.exception.ErrorCode;
 import com.rentalplatform.backend.common.upload.StorageService;
-import com.rentalplatform.backend.owner.entity.VehicleOwner;
-import com.rentalplatform.backend.owner.service.OwnerService;
+import com.rentalplatform.backend.owner.service.OwnerContextService;
 import com.rentalplatform.backend.vehicle.dto.response.VehicleImageResponse;
 import com.rentalplatform.backend.vehicle.entity.Vehicle;
 import com.rentalplatform.backend.vehicle.entity.VehicleImage;
@@ -29,7 +28,7 @@ public class VehicleImageServiceImpl implements VehicleImageService {
 
     private final VehicleImageMapper vehicleImageMapper;
 
-    private final OwnerService ownerService;
+    private final OwnerContextService ownerContextService;
 
     private final StorageService storageService;
 
@@ -55,86 +54,51 @@ public class VehicleImageServiceImpl implements VehicleImageService {
             throw new AppException(ErrorCode.INVALID_IMAGE_TYPE);
         }
 
-        VehicleOwner owner =
-                ownerService.getCurrentOwner();
+        UUID ownerId = ownerContextService.getCurrentOwnerId();
 
-        Vehicle vehicle =
-                vehicleRepository
-                        .findByIdAndVehicleOwnerIdAndDeletedFalse(
-                                vehicleId,
-                                owner.getId()
-                        )
-                        .orElseThrow(() ->
-                                             new AppException(
-                                                     ErrorCode.VEHICLE_NOT_FOUND
-                                             )
-                        );
+        Vehicle vehicle = vehicleRepository.findByIdAndVehicleOwnerIdAndDeletedFalse(vehicleId, ownerId)
+                                           .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_FOUND));
 
-        long imageCount =
-                vehicleImageRepository.countByVehicleId(vehicleId);
+        long imageCount = vehicleImageRepository.countByVehicleId(vehicleId);
 
         if (imageCount >= MAX_VEHICLE_IMAGES) {
             throw new AppException(ErrorCode.MAX_IMAGES_EXCEEDED);
         }
 
-        String imageUrl =
-                storageService.upload(
-                        file,
-                        "vehicles"
-                );
+        String imageUrl = storageService.upload(file, "vehicles");
 
-        VehicleImage image =
-                new VehicleImage();
+        VehicleImage image = new VehicleImage();
 
         image.setVehicle(vehicle);
 
         image.setImageUrl(imageUrl);
 
-        image.setSortOrder(
-                (int) imageCount + 1
-        );
+        image.setSortOrder((int) imageCount + 1);
 
-        VehicleImage savedImage =
-                vehicleImageRepository.save(image);
+        VehicleImage savedImage = vehicleImageRepository.save(image);
 
-        return vehicleImageMapper.toResponse(
-                savedImage
-        );
+        return vehicleImageMapper.toResponse(savedImage);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<VehicleImageResponse> getVehicleImages(UUID vehicleId) {
-        return vehicleImageRepository
-                .findByVehicleIdOrderBySortOrderAsc(
-                        vehicleId
-                )
-                .stream()
-                .map(vehicleImageMapper::toResponse)
-                .toList();
+        return vehicleImageRepository.findByVehicleIdOrderBySortOrderAsc(vehicleId)
+                                     .stream()
+                                     .map(vehicleImageMapper::toResponse)
+                                     .toList();
     }
 
     @Override
     @Transactional
     public void deleteImage(UUID imageId) {
-        VehicleOwner owner =
-                ownerService.getCurrentOwner();
+        UUID ownerId = ownerContextService.getCurrentOwnerId();
 
-        VehicleImage image =
-                vehicleImageRepository
-                        .findByIdAndVehicleVehicleOwnerId(
-                                imageId,
-                                owner.getId()
-                        )
-                        .orElseThrow(() ->
-                                             new AppException(
-                                                     ErrorCode.VEHICLE_IMAGE_NOT_FOUND
-                                             )
-                        );
+        VehicleImage image = vehicleImageRepository.findByIdAndVehicleVehicleOwnerId(imageId, ownerId)
+                                                   .orElseThrow(
+                                                           () -> new AppException(ErrorCode.VEHICLE_IMAGE_NOT_FOUND));
 
-        storageService.delete(
-                image.getImageUrl()
-        );
+        storageService.delete(image.getImageUrl());
 
         vehicleImageRepository.delete(image);
     }

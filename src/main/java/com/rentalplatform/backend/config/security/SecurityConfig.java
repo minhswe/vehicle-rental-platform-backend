@@ -55,7 +55,7 @@ public class SecurityConfig {
 
                                 .requestMatchers("/customer/**")
                                 .hasRole(UserRole.CUSTOMER.name())
-                                
+
                                 .anyRequest()
                                 .authenticated()
 
