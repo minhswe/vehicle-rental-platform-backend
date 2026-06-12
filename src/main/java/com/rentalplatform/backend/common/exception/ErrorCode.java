@@ -90,7 +90,9 @@ public enum ErrorCode {
     //PAYMENT
     PAYMENT_NOT_FOUND(404, "Payment not found"),
     PAYMENT_ALREADY_EXISTS(409, "Payment already exists"),
-    INVALID_PAYMENT_STATE(400, "Invalid payment state");
+    INVALID_PAYMENT_STATE(400, "Invalid payment state"),
+    INVALID_PAYMENT_AMOUNT(400, "Invalid payment amount"),
+    INVALID_PAYMENT_PROVIDER(400, "Invalid payment provider");
 
     private final int status;
     private final String message;

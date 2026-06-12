@@ -9,14 +9,15 @@
 
 ## Current Progress
 
-| Module | Status        |
-|----------|---------|
-| Authentication | ✅ Completed         |
-| Vehicle | 🚧 In Progress     |
-| Booking | ⏳ Planned                   |
-| Payment | ⏳ Planned                   |
-| Notification | ⏳ Planned                   |
-| Review | ⏳ Planned                   |
+| Module         | Status            |
+|----------------|-------------------|
+| Authentication | ✅ Completed       |
+| Vehicle        | ✅ Completed       |
+| Booking        | ✅ Completed       |
+| Payment        | ✅ Completed       |
+| Wallet         | 🚧 In Progress    |
+| Notification   | ⏳ Planned         |
+| Review         | ⏳ Planned         |
 
 ## Tech stack
 
@@ -67,15 +68,6 @@
 - Unit testing using JUnit 5 and Mockito
 - Automated CI test execution through GitHub Actions
 - Code coverage monitoring with JaCoCo and Codecov
-
-Coverage Summary:
-
-| Module         | Line Coverage |
-|----------------|---------------|
-| Authentication | 95%           |
-| File upload    | 100%          |
-| User           | 96%           |
-| Owner          | 100%          |
 
 Generate Coverage Report
 

@@ -12,6 +12,7 @@ import com.rentalplatform.backend.common.exception.AppException;
 import com.rentalplatform.backend.common.exception.ErrorCode;
 import com.rentalplatform.backend.common.security.AuthenticationFacade;
 import com.rentalplatform.backend.owner.service.OwnerContextService;
+import com.rentalplatform.backend.payment.service.PaymentService;
 import com.rentalplatform.backend.user.entity.User;
 import com.rentalplatform.backend.user.repository.UserRepository;
 import com.rentalplatform.backend.vehicle.entity.Vehicle;
@@ -43,6 +44,7 @@ public class BookingServiceImpl implements BookingService {
     private final AuthenticationFacade authenticationFacade;
     private final OwnerContextService ownerContextService;
     private final BookingStatusLogRepository bookingStatusLogRepository;
+    private final PaymentService paymentService;
 
     private static final List<BookingStatus> BLOCKING_STATUSES =
             List.of(
@@ -201,12 +203,18 @@ public class BookingServiceImpl implements BookingService {
 
         validatePendingBooking(booking);
 
-        return bookingMapper.toResponse(
+        Booking updatedBooking =
                 updateBookingStatus(
                         booking,
                         BookingStatus.REJECTED
-                )
+                );
+
+        paymentService.refundBookingPayment(
+                updatedBooking
         );
+
+        return bookingMapper.toResponse(
+                updatedBooking);
     }
 
     @Transactional

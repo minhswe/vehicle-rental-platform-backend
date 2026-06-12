@@ -13,6 +13,7 @@ import com.rentalplatform.backend.common.exception.ErrorCode;
 import com.rentalplatform.backend.common.security.AuthenticationFacade;
 import com.rentalplatform.backend.owner.entity.VehicleOwner;
 import com.rentalplatform.backend.owner.service.OwnerContextService;
+import com.rentalplatform.backend.payment.service.PaymentService;
 import com.rentalplatform.backend.user.entity.User;
 import com.rentalplatform.backend.user.repository.UserRepository;
 import com.rentalplatform.backend.vehicle.entity.Vehicle;
@@ -63,6 +64,9 @@ class BookingServiceImplTest {
 
     @Mock
     private BookingStatusLogRepository bookingStatusLogRepository;
+
+    @Mock
+    private PaymentService paymentService;
 
     @InjectMocks
     private BookingServiceImpl bookingService;
@@ -619,17 +623,15 @@ class BookingServiceImplTest {
         when(ownerContextService.getCurrentOwner())
                 .thenReturn(owner);
 
-        when(
-                bookingRepository.findByIdAndOwnerId(
-                        bookingId,
-                        ownerId
-                )
-        ).thenReturn(Optional.of(booking));
+        when(bookingRepository.findByIdAndOwnerId(
+                bookingId,
+                ownerId
+        )).thenReturn(Optional.of(booking));
 
-        when(bookingRepository.save(any()))
-                .thenAnswer(i -> i.getArgument(0));
+        when(bookingRepository.save(any(Booking.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
-        when(bookingMapper.toResponse(any()))
+        when(bookingMapper.toResponse(any(Booking.class)))
                 .thenReturn(bookingResponse);
 
         BookingResponse result =
@@ -641,8 +643,16 @@ class BookingServiceImplTest {
                 BookingStatus.REJECTED,
                 booking.getBookingStatus()
         );
-    }
 
+        verify(paymentService)
+                .refundBookingPayment(booking);
+
+        verify(bookingRepository)
+                .save(booking);
+
+        verify(bookingStatusLogRepository)
+                .save(any(BookingStatusLog.class));
+    }
     @Test
     @DisplayName("Should throw INVALID_BOOKING_STATUS when booking is not pending")
     void rejectBooking_ShouldThrowInvalidStatus() {
@@ -711,6 +721,9 @@ class BookingServiceImplTest {
 
         bookingService.rejectBooking(bookingId);
 
+        verify(paymentService)
+                .refundBookingPayment(booking);
+
         ArgumentCaptor<BookingStatusLog> logCaptor =
                 ArgumentCaptor.forClass(BookingStatusLog.class);
 
@@ -738,6 +751,10 @@ class BookingServiceImplTest {
         assertEquals(
                 ownerUserId,
                 savedLog.getChangedBy()
+        );
+
+        assertNotNull(
+                savedLog.getChangedAt()
         );
     }
 
