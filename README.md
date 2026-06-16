@@ -15,7 +15,7 @@
 | Vehicle        | ✅ Completed       |
 | Booking        | ✅ Completed       |
 | Payment        | ✅ Completed       |
-| Wallet         | 🚧 In Progress    |
+| Wallet         | ✅ Completed      |
 | Notification   | ⏳ Planned         |
 | Review         | ⏳ Planned         |
 

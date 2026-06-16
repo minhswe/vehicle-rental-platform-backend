@@ -22,3 +22,6 @@ cloudinary:
   cloud-name: test
   api-key: test
   api-secret: test
+
+wallet:
+  hold-expiration-minutes: 30
