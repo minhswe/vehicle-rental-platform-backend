@@ -1,6 +1,10 @@
 # Vehicle Rental Platform Backend
 ![Java CI](https://github.com/minhswe/vehicle-rental-platform-backend/actions/workflows/java-ci.yml/badge.svg)
 [![codecov](https://codecov.io/gh/minhswe/vehicle-rental-platform-backend/branch/master/graph/badge.svg)](...)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=minhswe_vehicle-rental-platform-backend&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=minhswe_vehicle-rental-platform-backend)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=minhswe_vehicle-rental-platform-backend&metric=security_rating)](...)
+[![Maintainability](https://sonarcloud.io/api/project_badges/measure?project=minhswe_vehicle-rental-platform-backend&metric=sqale_rating)](...)
+## Tech Stack
 ![Java](https://img.shields.io/badge/Java-21-blue)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.5-brightgreen)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue)
