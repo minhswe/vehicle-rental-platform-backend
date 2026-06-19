@@ -1,49 +1,42 @@
 # Vehicle Rental Platform Backend
+
 ![Java CI](https://github.com/minhswe/vehicle-rental-platform-backend/actions/workflows/java-ci.yml/badge.svg)
 [![codecov](https://codecov.io/gh/minhswe/vehicle-rental-platform-backend/branch/master/graph/badge.svg)](...)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=minhswe_vehicle-rental-platform-backend&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=minhswe_vehicle-rental-platform-backend)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=minhswe_vehicle-rental-platform-backend&metric=security_rating)](...)
 [![Maintainability](https://sonarcloud.io/api/project_badges/measure?project=minhswe_vehicle-rental-platform-backend&metric=sqale_rating)](...)
+
 ## Tech Stack
+
 ![Java](https://img.shields.io/badge/Java-21-blue)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.5-brightgreen)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue)
 ![Neon](https://img.shields.io/badge/Neon-Cloud_Database-brightgreen)
 ![Cloudinary](https://img.shields.io/badge/Cloudinary-Media_Storage-blue)
 
+- **Backend Framework:** Spring Boot (Java)
+- **Security:** Spring Security & JWT
+- **Data & Storage:** PostgreSQL (Neon Cloud), Cloudinary
+- **Testing:** JUnit 5 & Mockito *(Unit Testing)*
+- **Code Analysis:** SonarQube *(Static Code Analysis & Test Coverage)*
+- **Build Tool & Documentation:** Gradle, Swagger
+
 ## Current Progress
 
-| Module         | Status            |
-|----------------|-------------------|
-| Authentication | ✅ Completed       |
-| Vehicle        | ✅ Completed       |
-| Booking        | ✅ Completed       |
-| Payment        | ✅ Completed       |
-| Wallet         | ✅ Completed      |
-| Notification   | ⏳ Planned         |
-| Review         | ⏳ Planned         |
-
-## Tech stack
-
-- Language: Java
-- Framework: Spring Boot
-- Security: Spring Security & JWT
-- Database: PostgreSQL (Neon Cloud)
-- Media Storage: Cloudinary
-- Build tool: Gradle
-- API Docs: Swagger
-
-## Main Modules
-
-- Auth/ Identity
-- Vehicle
-- Booking
-- Payment
-- Notification
-- Review
+| Module         | Status      |
+|----------------|-------------|
+| Authentication | ✅ Completed |
+| Vehicle        | ✅ Completed |
+| Booking        | ✅ Completed |
+| Payment        | ✅ Completed |
+| Wallet         | ✅ Completed |
+| Notification   | ⏳ Planned   |
+| Review         | ⏳ Planned   |
 
 ## System features (Detailed in docs/)
+
 ### Authentication & Security
+
 - JWT Authentication
 - Refresh Token Rotation
 - Spring Security Integration
@@ -53,6 +46,7 @@
 - Role-Based Access Control (RBAC)
 - Device & IP Tracking
 - Stateless Session Management
+
 ### Updating...
 
 ### DevOps
@@ -63,26 +57,29 @@
 - Artifact Upload
 
 ### Testing
+
 - JUnit 5
 - Mockito
 - Jacoco
 
-
 ### Testing Strategy
+
 - Unit testing using JUnit 5 and Mockito
 - Automated CI test execution through GitHub Actions
 - Code coverage monitoring with JaCoCo and Codecov
 
 Generate Coverage Report
 
-```bash
+```shell
 ./gradlew clean test jacocoTestReport
 ````
 
 ## Architecture
+
 ```
 Client → Spring Security → Controller → Service → Repository → PostgreSQL
 ```
+
 ## API documentation
 
 - Swagger UI: https://minhswe.github.io/vehicle-rental-platform-backend/
@@ -94,3 +91,31 @@ Client → Spring Security → Controller → Service → Repository → Postgre
 ## Database design
 
 See here in [dbdiagram](https://dbdiagram.io/d/Vehicle-rental-platform-69cb4b4cfb2db18e3b41ae5c)
+
+## Getting started (Local Setup)
+
+### Prerequisites
+
+- Java 21
+- Gradle
+
+### Installation
+
+1. Clone this repository
+
+```shell
+git clone https://github.com/minhswe/vehicle-rental-platform-backend.git
+```
+
+2. Configure Environment Variables as instructed in the `.env.example `file.
+3. Build the application
+
+```shell
+./gradlew clean build
+```
+
+4. Run the application
+
+```shell
+./gradlew bootRun
+```

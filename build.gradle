@@ -45,8 +45,9 @@ sonar {
         property "sonar.projectKey", "minhswe_vehicle-rental-platform-backend"
         property "sonar.organization", "minhswe"
         property "sonar.host.url", "https://sonarcloud.io"
-        property "sonar.coverage.jacoco.xmlReportPaths",
-                layout.buildDirectory.file("reports/jacoco/test/jacocoTestReport.xml").get().asFile
+        property "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml"
+        property "sonar.java.binaries", "build/classes/java/main"
+        property "sonar.coverage.exclusions", "**/common/exception/**"
     }
 }
 
