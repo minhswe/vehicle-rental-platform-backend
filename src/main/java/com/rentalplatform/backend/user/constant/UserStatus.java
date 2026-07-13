@@ -1,4 +1,4 @@
-package com.rentalplatform.backend.user.enums;
+package com.rentalplatform.backend.user.constant;
 
 public enum UserStatus {
     ACTIVE,

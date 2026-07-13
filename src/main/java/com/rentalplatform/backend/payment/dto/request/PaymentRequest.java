@@ -1,8 +1,8 @@
 package com.rentalplatform.backend.payment.dto.request;
 
-import com.rentalplatform.backend.payment.enums.Currency;
-import com.rentalplatform.backend.payment.enums.PaymentMethod;
-import com.rentalplatform.backend.payment.enums.PaymentProvider;
+import com.rentalplatform.backend.payment.constant.Currency;
+import com.rentalplatform.backend.payment.constant.PaymentMethod;
+import com.rentalplatform.backend.payment.constant.PaymentProvider;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;

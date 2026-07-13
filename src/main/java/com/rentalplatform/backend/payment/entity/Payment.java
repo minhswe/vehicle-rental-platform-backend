@@ -2,10 +2,10 @@ package com.rentalplatform.backend.payment.entity;
 
 import com.rentalplatform.backend.booking.entity.Booking;
 import com.rentalplatform.backend.common.entity.AuditEntity;
-import com.rentalplatform.backend.payment.enums.Currency;
-import com.rentalplatform.backend.payment.enums.PaymentMethod;
-import com.rentalplatform.backend.payment.enums.PaymentProvider;
-import com.rentalplatform.backend.payment.enums.PaymentStatus;
+import com.rentalplatform.backend.payment.constant.Currency;
+import com.rentalplatform.backend.payment.constant.PaymentMethod;
+import com.rentalplatform.backend.payment.constant.PaymentProvider;
+import com.rentalplatform.backend.payment.constant.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.*;
 

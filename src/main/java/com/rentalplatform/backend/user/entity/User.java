@@ -1,6 +1,6 @@
 package com.rentalplatform.backend.user.entity;
 
-import com.rentalplatform.backend.user.enums.Provider;
+import com.rentalplatform.backend.user.constant.Provider;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 import java.time.Instant;
 import java.util.UUID;
 
-import com.rentalplatform.backend.user.enums.UserRole;
-import com.rentalplatform.backend.user.enums.UserStatus;
+import com.rentalplatform.backend.user.constant.UserRole;
+import com.rentalplatform.backend.user.constant.UserStatus;
 
 @Entity
 @Table(name = "users")

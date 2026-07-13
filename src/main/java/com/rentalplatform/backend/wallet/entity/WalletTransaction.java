@@ -1,9 +1,9 @@
 package com.rentalplatform.backend.wallet.entity;
 
 import com.rentalplatform.backend.common.entity.AuditEntity;
-import com.rentalplatform.backend.wallet.enums.WalletReferenceType;
-import com.rentalplatform.backend.wallet.enums.WalletTransactionStatus;
-import com.rentalplatform.backend.wallet.enums.WalletTransactionType;
+import com.rentalplatform.backend.wallet.constant.WalletReferenceType;
+import com.rentalplatform.backend.wallet.constant.WalletTransactionStatus;
+import com.rentalplatform.backend.wallet.constant.WalletTransactionType;
 import jakarta.persistence.*;
 import lombok.*;
 

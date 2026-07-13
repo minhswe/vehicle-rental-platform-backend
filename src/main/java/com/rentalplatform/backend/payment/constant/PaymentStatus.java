@@ -1,4 +1,4 @@
-package com.rentalplatform.backend.payment.enums;
+package com.rentalplatform.backend.payment.constant;
 
 public enum PaymentStatus {
     PENDING,

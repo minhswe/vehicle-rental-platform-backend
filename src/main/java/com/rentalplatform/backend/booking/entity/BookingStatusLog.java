@@ -1,6 +1,6 @@
 package com.rentalplatform.backend.booking.entity;
 
-import com.rentalplatform.backend.booking.enums.BookingStatus;
+import com.rentalplatform.backend.booking.constant.BookingStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

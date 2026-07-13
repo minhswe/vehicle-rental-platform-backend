@@ -1,6 +1,6 @@
 package com.rentalplatform.backend.user.dto.response;
 
-import com.rentalplatform.backend.user.enums.LicenseVerificationStatus;
+import com.rentalplatform.backend.user.constant.LicenseVerificationStatus;
 import lombok.Getter;
 import lombok.Setter;
 

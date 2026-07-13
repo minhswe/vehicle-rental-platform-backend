@@ -1,7 +1,7 @@
 package com.rentalplatform.backend.payment.service;
 
 import com.rentalplatform.backend.booking.entity.Booking;
-import com.rentalplatform.backend.booking.enums.BookingStatus;
+import com.rentalplatform.backend.booking.constant.BookingStatus;
 import com.rentalplatform.backend.booking.repository.BookingRepository;
 import com.rentalplatform.backend.common.exception.AppException;
 import com.rentalplatform.backend.common.exception.ErrorCode;
@@ -9,9 +9,9 @@ import com.rentalplatform.backend.common.security.AuthenticationFacade;
 import com.rentalplatform.backend.payment.dto.request.PaymentRequest;
 import com.rentalplatform.backend.payment.dto.response.PaymentResponse;
 import com.rentalplatform.backend.payment.entity.Payment;
-import com.rentalplatform.backend.payment.enums.PaymentMethod;
-import com.rentalplatform.backend.payment.enums.PaymentProvider;
-import com.rentalplatform.backend.payment.enums.PaymentStatus;
+import com.rentalplatform.backend.payment.constant.PaymentMethod;
+import com.rentalplatform.backend.payment.constant.PaymentProvider;
+import com.rentalplatform.backend.payment.constant.PaymentStatus;
 import com.rentalplatform.backend.payment.mapper.PaymentMapper;
 import com.rentalplatform.backend.payment.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;

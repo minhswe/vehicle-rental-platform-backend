@@ -1,9 +1,9 @@
 package com.rentalplatform.backend.payment.dto.response;
 
-import com.rentalplatform.backend.payment.enums.Currency;
-import com.rentalplatform.backend.payment.enums.PaymentMethod;
-import com.rentalplatform.backend.payment.enums.PaymentProvider;
-import com.rentalplatform.backend.payment.enums.PaymentStatus;
+import com.rentalplatform.backend.payment.constant.Currency;
+import com.rentalplatform.backend.payment.constant.PaymentMethod;
+import com.rentalplatform.backend.payment.constant.PaymentProvider;
+import com.rentalplatform.backend.payment.constant.PaymentStatus;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;

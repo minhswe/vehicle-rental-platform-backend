@@ -9,7 +9,7 @@ import com.rentalplatform.backend.user.dto.request.ChangePasswordRequest;
 import com.rentalplatform.backend.user.dto.request.UpdateProfileRequest;
 import com.rentalplatform.backend.user.dto.response.UserProfileResponse;
 import com.rentalplatform.backend.user.entity.User;
-import com.rentalplatform.backend.user.enums.Provider;
+import com.rentalplatform.backend.user.constant.Provider;
 import com.rentalplatform.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;

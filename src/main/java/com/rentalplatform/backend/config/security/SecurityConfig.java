@@ -1,7 +1,7 @@
 package com.rentalplatform.backend.config.security;
 
 import com.rentalplatform.backend.auth.security.JwtAuthenticationFilter;
-import com.rentalplatform.backend.user.enums.UserRole;
+import com.rentalplatform.backend.user.constant.UserRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

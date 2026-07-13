@@ -1,6 +1,6 @@
 package com.rentalplatform.backend.wallet.dto.response;
 
-import com.rentalplatform.backend.wallet.enums.WalletHoldStatus;
+import com.rentalplatform.backend.wallet.constant.WalletHoldStatus;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;

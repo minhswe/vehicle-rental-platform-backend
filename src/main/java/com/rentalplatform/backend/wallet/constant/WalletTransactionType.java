@@ -1,4 +1,4 @@
-package com.rentalplatform.backend.wallet.enums;
+package com.rentalplatform.backend.wallet.constant;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

@@ -1,7 +1,7 @@
 package com.rentalplatform.backend.booking.repository;
 
 import com.rentalplatform.backend.booking.entity.Booking;
-import com.rentalplatform.backend.booking.enums.BookingStatus;
+import com.rentalplatform.backend.booking.constant.BookingStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,7 +1,7 @@
 package com.rentalplatform.backend.payment.repository;
 
 import com.rentalplatform.backend.payment.entity.Payment;
-import com.rentalplatform.backend.payment.enums.PaymentStatus;
+import com.rentalplatform.backend.payment.constant.PaymentStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,7 +1,7 @@
 package com.rentalplatform.backend.wallet.repository;
 
 import com.rentalplatform.backend.wallet.entity.WalletHold;
-import com.rentalplatform.backend.wallet.enums.WalletHoldStatus;
+import com.rentalplatform.backend.wallet.constant.WalletHoldStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

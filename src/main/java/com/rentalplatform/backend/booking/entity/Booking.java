@@ -1,6 +1,6 @@
 package com.rentalplatform.backend.booking.entity;
 
-import com.rentalplatform.backend.booking.enums.BookingStatus;
+import com.rentalplatform.backend.booking.constant.BookingStatus;
 import com.rentalplatform.backend.common.entity.AuditEntity;
 import com.rentalplatform.backend.owner.entity.VehicleOwner;
 import com.rentalplatform.backend.user.entity.User;

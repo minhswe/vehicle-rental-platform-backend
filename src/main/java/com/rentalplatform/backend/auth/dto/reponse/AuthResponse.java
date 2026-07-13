@@ -1,6 +1,6 @@
 package com.rentalplatform.backend.auth.dto.reponse;
 
-import com.rentalplatform.backend.user.enums.UserRole;
+import com.rentalplatform.backend.user.constant.UserRole;
 import lombok.*;
 
 import java.util.UUID;

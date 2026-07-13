@@ -1,4 +1,4 @@
-package com.rentalplatform.backend.booking.enums;
+package com.rentalplatform.backend.booking.constant;
 
 public enum PaymentStatus {
     UNPAID,

@@ -1,6 +1,6 @@
 package com.rentalplatform.backend.user.entity;
 
-import com.rentalplatform.backend.user.enums.LicenseVerificationStatus;
+import com.rentalplatform.backend.user.constant.LicenseVerificationStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

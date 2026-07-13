@@ -1,7 +1,7 @@
 package com.rentalplatform.backend.user.repository;
 
 import com.rentalplatform.backend.user.entity.DriverLicense;
-import com.rentalplatform.backend.user.enums.LicenseVerificationStatus;
+import com.rentalplatform.backend.user.constant.LicenseVerificationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.Instant;

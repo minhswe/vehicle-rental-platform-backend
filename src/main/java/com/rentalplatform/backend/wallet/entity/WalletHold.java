@@ -3,13 +3,12 @@ package com.rentalplatform.backend.wallet.entity;
 import com.rentalplatform.backend.booking.entity.Booking;
 import com.rentalplatform.backend.common.entity.AuditEntity;
 import com.rentalplatform.backend.payment.entity.Payment;
-import com.rentalplatform.backend.wallet.enums.WalletHoldStatus;
+import com.rentalplatform.backend.wallet.constant.WalletHoldStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity

@@ -6,7 +6,7 @@ import com.rentalplatform.backend.common.upload.StorageService;
 import com.rentalplatform.backend.user.dto.request.UpdateDriverLicenseRequest;
 import com.rentalplatform.backend.user.dto.response.DriverLicenseResponse;
 import com.rentalplatform.backend.user.entity.DriverLicense;
-import com.rentalplatform.backend.user.enums.LicenseVerificationStatus;
+import com.rentalplatform.backend.user.constant.LicenseVerificationStatus;
 import com.rentalplatform.backend.user.mapper.DriverLicenseMapper;
 import com.rentalplatform.backend.user.repository.DriverLicenseRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.UUID;

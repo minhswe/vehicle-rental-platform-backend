@@ -1,8 +1,8 @@
 package com.rentalplatform.backend.auth.security;
 
 import com.rentalplatform.backend.user.entity.User;
-import com.rentalplatform.backend.user.enums.UserRole;
-import com.rentalplatform.backend.user.enums.UserStatus;
+import com.rentalplatform.backend.user.constant.UserRole;
+import com.rentalplatform.backend.user.constant.UserStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
