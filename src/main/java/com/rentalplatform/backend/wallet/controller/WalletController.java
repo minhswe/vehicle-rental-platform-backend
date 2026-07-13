@@ -1,5 +1,6 @@
 package com.rentalplatform.backend.wallet.controller;
 
+import com.rentalplatform.backend.common.constant.ApiPaths;
 import com.rentalplatform.backend.wallet.dto.response.WalletHoldResponse;
 import com.rentalplatform.backend.wallet.dto.response.WalletResponse;
 import com.rentalplatform.backend.wallet.dto.response.WalletTransactionResponse;
@@ -14,7 +15,7 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/wallets")
+@RequestMapping(ApiPaths.API_V1 + "/wallets")
 @RequiredArgsConstructor
 public class WalletController {
 

@@ -1,5 +1,6 @@
 package com.rentalplatform.backend.vehicle.controller;
 
+import com.rentalplatform.backend.common.constant.ApiPaths;
 import com.rentalplatform.backend.common.response.ApiResponse;
 import com.rentalplatform.backend.vehicle.dto.response.VehicleDocumentResponse;
 import com.rentalplatform.backend.vehicle.enums.DocumentType;
@@ -16,7 +17,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/owner/vehicles")
+@RequestMapping(ApiPaths.API_V1 + "/owner/vehicles")
 public class VehicleDocumentController {
 
     private final VehicleDocumentService

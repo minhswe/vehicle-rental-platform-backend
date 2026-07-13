@@ -5,6 +5,7 @@ import com.rentalplatform.backend.auth.dto.request.LoginRequest;
 import com.rentalplatform.backend.auth.dto.request.RefreshTokenRequest;
 import com.rentalplatform.backend.auth.dto.request.RegisterRequest;
 import com.rentalplatform.backend.auth.service.AuthService;
+import com.rentalplatform.backend.common.constant.ApiPaths;
 import com.rentalplatform.backend.common.response.ApiResponse;
 import com.rentalplatform.backend.auth.dto.request.LogOutDeviceRequest;
 import com.rentalplatform.backend.user.service.UserService;
@@ -18,7 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping(ApiPaths.API_V1 + "/auth")
 @RequiredArgsConstructor
 
 public class AuthController {

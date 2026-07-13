@@ -1,5 +1,6 @@
 package com.rentalplatform.backend.vehicle.controller;
 
+import com.rentalplatform.backend.common.constant.ApiPaths;
 import com.rentalplatform.backend.common.response.ApiResponse;
 import com.rentalplatform.backend.vehicle.dto.response.VehicleImageResponse;
 import com.rentalplatform.backend.vehicle.service.VehicleImageService;
@@ -12,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/vehicles")
+@RequestMapping(ApiPaths.API_V1 + "/vehicles")
 @RequiredArgsConstructor
 public class VehicleImageController {
     private final VehicleImageService vehicleImageService;

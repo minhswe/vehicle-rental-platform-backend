@@ -2,6 +2,7 @@ package com.rentalplatform.backend.booking.controller;
 
 import com.rentalplatform.backend.booking.dto.response.BookingResponse;
 import com.rentalplatform.backend.booking.service.BookingService;
+import com.rentalplatform.backend.common.constant.ApiPaths;
 import com.rentalplatform.backend.common.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -12,7 +13,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/owner/bookings")
+@RequestMapping(ApiPaths.API_V1 +  "/owner/bookings")
 public class OwnerBookingController {
     private final BookingService bookingService;
 

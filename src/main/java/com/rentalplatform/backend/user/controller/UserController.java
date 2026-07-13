@@ -1,5 +1,6 @@
 package com.rentalplatform.backend.user.controller;
 
+import com.rentalplatform.backend.common.constant.ApiPaths;
 import com.rentalplatform.backend.user.dto.request.ChangePasswordRequest;
 import com.rentalplatform.backend.user.dto.request.UpdateProfileRequest;
 import com.rentalplatform.backend.user.dto.response.UserProfileResponse;
@@ -13,7 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/users/me")
+@RequestMapping(ApiPaths.API_V1 + "/users/me")
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;

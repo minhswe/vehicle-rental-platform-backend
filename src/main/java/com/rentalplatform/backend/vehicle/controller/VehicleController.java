@@ -1,5 +1,6 @@
 package com.rentalplatform.backend.vehicle.controller;
 
+import com.rentalplatform.backend.common.constant.ApiPaths;
 import com.rentalplatform.backend.common.response.ApiResponse;
 import com.rentalplatform.backend.vehicle.dto.request.CreateVehicleRequest;
 import com.rentalplatform.backend.vehicle.dto.request.UpdateVehicleRequest;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/vehicles")
+@RequestMapping(ApiPaths.API_V1 + "/vehicles")
 @RequiredArgsConstructor
 public class VehicleController {
 

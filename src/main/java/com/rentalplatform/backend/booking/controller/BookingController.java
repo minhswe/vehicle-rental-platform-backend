@@ -3,6 +3,7 @@ package com.rentalplatform.backend.booking.controller;
 import com.rentalplatform.backend.booking.dto.request.CreateBookingRequest;
 import com.rentalplatform.backend.booking.dto.response.BookingResponse;
 import com.rentalplatform.backend.booking.service.BookingService;
+import com.rentalplatform.backend.common.constant.ApiPaths;
 import com.rentalplatform.backend.common.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +15,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/bookings")
+@RequestMapping(ApiPaths.API_V1 + "/bookings")
 public class BookingController {
     private final BookingService bookingService;
 

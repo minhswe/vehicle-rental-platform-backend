@@ -36,25 +36,37 @@
 ## System features (Detailed in docs/)
 
 ### Authentication & Security
-
-- JWT Authentication
+- JWT Authentication (Access & Refresh Tokens)
 - Refresh Token Rotation
 - Spring Security Integration
-- BCrypt Password Encryption
-- Custom UserDetailsService
-- Custom UserPrincipal
 - Role-Based Access Control (RBAC)
+- BCrypt Password Hashing
 - Device & IP Tracking
 - Stateless Session Management
 
-### Updating...
+### Booking module
+**Features**
+- Booking creation and management
+- Booking approval/rejection by vehicle owners
+- Booking cancellation
+- Booking history retrieval with pagination
+
+**Technical Highlights**
+- Overlapping booking detection
+- Role-based authorization
+- Booking status audit logging
+- Transaction management
+- Payment refund integration
 
 ### DevOps
-
-- GitHub Actions CI
+- GitHub Actions CI/CD
 - Automated Build & Test
-- OpenAPI Specification Generation
-- Artifact Upload
+- JaCoCo Code Coverage
+- Codecov Integration
+- SonarQube Static Code Analysis
+- OpenAPI Specification Generation (Github page)
+- API Documentation Deployment (GitHub Page)
+- Build Artifact Upload
 
 ### Testing
 
@@ -107,7 +119,8 @@ See here in [dbdiagram](https://dbdiagram.io/d/Vehicle-rental-platform-69cb4b4cf
 git clone https://github.com/minhswe/vehicle-rental-platform-backend.git
 ```
 
-2. Configure Environment Variables as instructed in the `.env.example `file.
+2. Copy `.env.example` and update the required values
+
 3. Build the application
 
 ```shell

@@ -1,5 +1,6 @@
 package com.rentalplatform.backend.payment.controller;
 
+import com.rentalplatform.backend.common.constant.ApiPaths;
 import com.rentalplatform.backend.common.response.ApiResponse;
 import com.rentalplatform.backend.payment.dto.request.PaymentRequest;
 import com.rentalplatform.backend.payment.dto.response.PaymentResponse;
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/payments")
+@RequestMapping(ApiPaths.API_V1 + "/payments")
 @RequiredArgsConstructor
 public class PaymentController {
 

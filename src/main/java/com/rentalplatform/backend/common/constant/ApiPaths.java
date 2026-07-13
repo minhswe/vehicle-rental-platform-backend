@@ -7,4 +7,6 @@ public final class ApiPaths {
     public static final String API_DOCS = "/v3/api-docs";
     public static final String SWAGGER_UI = "/swagger-ui";
     public static final String WEBJARS = "/webjars";
+    public static final String API_V1 = "/api/v1";
+
 }

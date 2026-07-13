@@ -1,5 +1,6 @@
 package com.rentalplatform.backend.owner.controller;
 
+import com.rentalplatform.backend.common.constant.ApiPaths;
 import com.rentalplatform.backend.common.response.ApiResponse;
 import com.rentalplatform.backend.owner.dto.request.RegisterOwnerRequest;
 import com.rentalplatform.backend.owner.dto.response.OwnerResponse;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/owners")
+@RequestMapping(ApiPaths.API_V1 + "/owners")
 @RequiredArgsConstructor
 public class OwnerController {
     private final OwnerService ownerService;

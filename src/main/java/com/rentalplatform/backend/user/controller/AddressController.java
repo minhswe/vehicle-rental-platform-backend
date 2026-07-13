@@ -1,5 +1,6 @@
 package com.rentalplatform.backend.user.controller;
 
+import com.rentalplatform.backend.common.constant.ApiPaths;
 import com.rentalplatform.backend.user.dto.request.CreateAddressRequest;
 import com.rentalplatform.backend.user.dto.request.UpdateAddressRequest;
 import com.rentalplatform.backend.user.dto.response.AddressResponse;
@@ -13,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/users/me/addresses")
+@RequestMapping(ApiPaths.API_V1 + "/users/me/addresses")
 @RequiredArgsConstructor
 public class AddressController {
     private final AddressService addressService;

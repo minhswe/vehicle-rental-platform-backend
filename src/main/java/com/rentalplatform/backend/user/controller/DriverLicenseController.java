@@ -1,5 +1,6 @@
 package com.rentalplatform.backend.user.controller;
 
+import com.rentalplatform.backend.common.constant.ApiPaths;
 import com.rentalplatform.backend.user.dto.request.UpdateDriverLicenseRequest;
 import com.rentalplatform.backend.user.dto.response.DriverLicenseResponse;
 import com.rentalplatform.backend.user.service.DriverLicenseService;
@@ -16,7 +17,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/users/me/driver-license")
+@RequestMapping(ApiPaths.API_V1 + "/users/me/driver-license")
 @RequiredArgsConstructor
 public class DriverLicenseController {
     private final DriverLicenseService driverLicenseService;
