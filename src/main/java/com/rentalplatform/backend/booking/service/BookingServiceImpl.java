@@ -4,10 +4,12 @@ import com.rentalplatform.backend.booking.dto.request.CreateBookingRequest;
 import com.rentalplatform.backend.booking.dto.response.BookingResponse;
 import com.rentalplatform.backend.booking.entity.Booking;
 import com.rentalplatform.backend.booking.entity.BookingStatusLog;
-import com.rentalplatform.backend.booking.enums.BookingStatus;
+import com.rentalplatform.backend.booking.constant.BookingStatus;
+import com.rentalplatform.backend.booking.factory.BookingEventFactory;
 import com.rentalplatform.backend.booking.mapper.BookingMapper;
 import com.rentalplatform.backend.booking.repository.BookingRepository;
 import com.rentalplatform.backend.booking.repository.BookingStatusLogRepository;
+import com.rentalplatform.backend.common.event.DomainEventPublisher;
 import com.rentalplatform.backend.common.exception.AppException;
 import com.rentalplatform.backend.common.exception.ErrorCode;
 import com.rentalplatform.backend.common.security.AuthenticationFacade;
@@ -45,6 +47,10 @@ public class BookingServiceImpl implements BookingService {
     private final OwnerContextService ownerContextService;
     private final BookingStatusLogRepository bookingStatusLogRepository;
     private final PaymentService paymentService;
+
+    private final BookingEventFactory bookingEventFactory;
+
+    private final DomainEventPublisher eventPublisher;
 
     private static final List<BookingStatus> BLOCKING_STATUSES =
             List.of(
@@ -117,6 +123,10 @@ public class BookingServiceImpl implements BookingService {
         // 10. Save
         Booking saved = bookingRepository.save(booking);
 
+        eventPublisher.publish(
+                bookingEventFactory.created(saved)
+        );
+
         return bookingMapper.toResponse(saved);
     }
 
@@ -187,11 +197,14 @@ public class BookingServiceImpl implements BookingService {
 
         validatePendingBooking(booking);
 
+        Booking updatedBooking = updateBookingStatus(
+                booking,
+                BookingStatus.CONFIRMED
+        );
+        eventPublisher.publish(bookingEventFactory.confirmed(updatedBooking));
+
         return bookingMapper.toResponse(
-                updateBookingStatus(
-                        booking,
-                        BookingStatus.CONFIRMED
-                )
+                updatedBooking
         );
     }
 
@@ -212,6 +225,8 @@ public class BookingServiceImpl implements BookingService {
         paymentService.refundBookingPayment(
                 updatedBooking
         );
+
+        eventPublisher.publish(bookingEventFactory.rejected(updatedBooking));
 
         return bookingMapper.toResponse(
                 updatedBooking);
@@ -236,11 +251,12 @@ public class BookingServiceImpl implements BookingService {
             );
         }
 
+        Booking updatedBooking = updateBookingStatus(booking, BookingStatus.CANCELLED);
+
+        eventPublisher.publish(bookingEventFactory.cancelled(updatedBooking));
+
         return bookingMapper.toResponse(
-                updateBookingStatus(
-                        booking,
-                        BookingStatus.CANCELLED
-                )
+                updatedBooking
         );
     }
 

@@ -4,10 +4,16 @@ import com.rentalplatform.backend.booking.dto.request.CreateBookingRequest;
 import com.rentalplatform.backend.booking.dto.response.BookingResponse;
 import com.rentalplatform.backend.booking.entity.Booking;
 import com.rentalplatform.backend.booking.entity.BookingStatusLog;
-import com.rentalplatform.backend.booking.enums.BookingStatus;
+import com.rentalplatform.backend.booking.constant.BookingStatus;
+import com.rentalplatform.backend.booking.event.BookingCancelledEvent;
+import com.rentalplatform.backend.booking.event.BookingConfirmedEvent;
+import com.rentalplatform.backend.booking.event.BookingCreatedEvent;
+import com.rentalplatform.backend.booking.event.BookingRejectedEvent;
+import com.rentalplatform.backend.booking.factory.BookingEventFactory;
 import com.rentalplatform.backend.booking.mapper.BookingMapper;
 import com.rentalplatform.backend.booking.repository.BookingRepository;
 import com.rentalplatform.backend.booking.repository.BookingStatusLogRepository;
+import com.rentalplatform.backend.common.event.DomainEventPublisher;
 import com.rentalplatform.backend.common.exception.AppException;
 import com.rentalplatform.backend.common.exception.ErrorCode;
 import com.rentalplatform.backend.common.security.AuthenticationFacade;
@@ -67,6 +73,12 @@ class BookingServiceImplTest {
 
     @Mock
     private PaymentService paymentService;
+
+    @Mock
+    private BookingEventFactory bookingEventFactory;
+
+    @Mock
+    private DomainEventPublisher eventPublisher;
 
     @InjectMocks
     private BookingServiceImpl bookingService;
@@ -153,10 +165,23 @@ class BookingServiceImplTest {
         when(bookingMapper.toResponse(any()))
                 .thenReturn(bookingResponse);
 
+        when(bookingEventFactory.created(any(Booking.class)))
+                .thenReturn(new BookingCreatedEvent(
+                        UUID.randomUUID(),
+                        UUID.randomUUID(),
+                        UUID.randomUUID(),
+                        UUID.randomUUID(),
+                        BigDecimal.TEN
+                ));
+
         BookingResponse result =
                 bookingService.createBooking(request);
 
         assertNotNull(result);
+
+        verify(bookingEventFactory).created(any(Booking.class));
+
+        verify(eventPublisher).publish(any(BookingCreatedEvent.class));
 
         verify(bookingRepository)
                 .save(any(Booking.class));
@@ -500,6 +525,12 @@ class BookingServiceImplTest {
         when(bookingMapper.toResponse(any()))
                 .thenReturn(bookingResponse);
 
+        BookingConfirmedEvent event = mock(BookingConfirmedEvent.class);
+
+
+        when(bookingEventFactory.confirmed(any(Booking.class)))
+                .thenReturn(event);
+
         BookingResponse result =
                 bookingService.confirmBooking(bookingId);
 
@@ -509,6 +540,10 @@ class BookingServiceImplTest {
                 BookingStatus.CONFIRMED,
                 booking.getBookingStatus()
         );
+
+        verify(bookingEventFactory).confirmed(booking);
+
+        verify(eventPublisher).publish(any(BookingConfirmedEvent.class));
 
         verify(bookingStatusLogRepository)
                 .save(any(BookingStatusLog.class));
@@ -634,6 +669,11 @@ class BookingServiceImplTest {
         when(bookingMapper.toResponse(any(Booking.class)))
                 .thenReturn(bookingResponse);
 
+        BookingRejectedEvent event = mock(BookingRejectedEvent.class);
+
+        when(bookingEventFactory.rejected(any(Booking.class)))
+                .thenReturn(event);
+
         BookingResponse result =
                 bookingService.rejectBooking(bookingId);
 
@@ -649,6 +689,10 @@ class BookingServiceImplTest {
 
         verify(bookingRepository)
                 .save(booking);
+
+        verify(bookingEventFactory).rejected(booking);
+
+        verify(eventPublisher).publish(any(BookingRejectedEvent.class));
 
         verify(bookingStatusLogRepository)
                 .save(any(BookingStatusLog.class));
@@ -828,6 +872,11 @@ class BookingServiceImplTest {
         when(bookingMapper.toResponse(booking))
                 .thenReturn(response);
 
+        BookingCancelledEvent event = mock(BookingCancelledEvent.class);
+
+        when(bookingEventFactory.cancelled(any(Booking.class)))
+                .thenReturn(event);
+
         BookingResponse result =
                 bookingService.cancelBooking(bookingId);
 
@@ -837,6 +886,11 @@ class BookingServiceImplTest {
                 BookingStatus.CANCELLED,
                 booking.getBookingStatus()
         );
+
+        verify(bookingEventFactory).cancelled(booking);
+
+        verify(eventPublisher).publish(any(BookingCancelledEvent.class));
+
 
         verify(bookingRepository)
                 .save(booking);
