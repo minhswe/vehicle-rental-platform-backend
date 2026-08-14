@@ -25,6 +25,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.dao.CannotAcquireLockException;
+import org.springframework.dao.PessimisticLockingFailureException;
+import org.springframework.dao.QueryTimeoutException;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -66,7 +69,6 @@ public class BookingServiceImpl implements BookingService {
             );
 
 
-    // todo: Prevent concurrent booking creation using pessimistic locking
     @Transactional
     @Override
     public BookingResponse createBooking(CreateBookingRequest request) {
@@ -79,8 +81,13 @@ public class BookingServiceImpl implements BookingService {
                                       .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         // get vehicle
-        Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
-                                           .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_FOUND));
+        Vehicle vehicle;
+        try {
+            vehicle = vehicleRepository.findByIdWithLock(request.getVehicleId())
+                                       .orElseThrow(() -> new AppException(ErrorCode.VEHICLE_NOT_FOUND));
+        } catch (PessimisticLockingFailureException | QueryTimeoutException e) {
+            throw new AppException(ErrorCode.CONCURRENT_BOOKING_CONFLICT);
+        }
 
         validateBookingRequest(request, vehicle, customerId);
 

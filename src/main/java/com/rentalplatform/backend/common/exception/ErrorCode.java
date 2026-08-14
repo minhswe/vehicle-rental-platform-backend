@@ -78,6 +78,7 @@ public enum ErrorCode {
     OWNER_CANNOT_BOOK_OWN_VEHICLE(400, "Owner cannot book their own vehicle"),
     INVALID_TIME_RANGE(400, "Invalid time range"),
     VEHICLE_ALREADY_BOOKED_IN_THIS_TIME_RANGE(400, "Vehicle is already booked in this time range"),
+    CONCURRENT_BOOKING_CONFLICT(409, "The vehicle is currently being booked by someone else"),
     INVALID_START_TIME(400, "Start time must be in the future"),
     BOOKING_NOT_FOUND(404, "Booking not found"),
     BOOKING_ACCESS_DENIED(403, "You do not have permission to access this booking"),

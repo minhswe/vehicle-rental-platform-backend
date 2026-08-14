@@ -146,7 +146,7 @@ class BookingServiceImplTest {
         when(userRepository.findById(userId))
                 .thenReturn(Optional.of(customer));
 
-        when(vehicleRepository.findById(vehicle.getId()))
+        when(vehicleRepository.findByIdWithLock(vehicle.getId()))
                 .thenReturn(Optional.of(vehicle));
 
         when(
@@ -227,7 +227,7 @@ class BookingServiceImplTest {
         when(userRepository.findById(userId))
                 .thenReturn(Optional.of(customer));
 
-        when(vehicleRepository.findById(any()))
+        when(vehicleRepository.findByIdWithLock(any()))
                 .thenReturn(Optional.empty());
 
         AppException exception =
@@ -255,7 +255,7 @@ class BookingServiceImplTest {
         when(userRepository.findById(ownerUserId))
                 .thenReturn(Optional.of(ownerUser));
 
-        when(vehicleRepository.findById(vehicle.getId()))
+        when(vehicleRepository.findByIdWithLock(vehicle.getId()))
                 .thenReturn(Optional.of(vehicle));
 
         AppException exception = assertThrows(
@@ -284,7 +284,7 @@ class BookingServiceImplTest {
         when(userRepository.findById(userId))
                 .thenReturn(Optional.of(customer));
 
-        when(vehicleRepository.findById(vehicle.getId()))
+        when(vehicleRepository.findByIdWithLock(vehicle.getId()))
                 .thenReturn(Optional.of(vehicle));
 
         AppException exception = assertThrows(
@@ -314,7 +314,7 @@ class BookingServiceImplTest {
         when(userRepository.findById(userId))
                 .thenReturn(Optional.of(customer));
 
-        when(vehicleRepository.findById(vehicle.getId()))
+        when(vehicleRepository.findByIdWithLock(vehicle.getId()))
                 .thenReturn(Optional.of(vehicle));
 
         AppException exception = assertThrows(
@@ -344,7 +344,7 @@ class BookingServiceImplTest {
         when(userRepository.findById(userId))
                 .thenReturn(Optional.of(customer));
 
-        when(vehicleRepository.findById(vehicle.getId()))
+        when(vehicleRepository.findByIdWithLock(vehicle.getId()))
                 .thenReturn(Optional.of(vehicle));
 
         when(
@@ -1030,7 +1030,7 @@ class BookingServiceImplTest {
         when(userRepository.findById(userId))
                 .thenReturn(Optional.of(customer));
 
-        when(vehicleRepository.findById(vehicle.getId()))
+        when(vehicleRepository.findByIdWithLock(vehicle.getId()))
                 .thenReturn(Optional.of(vehicle));
 
         AppException exception = assertThrows(
@@ -1087,7 +1087,7 @@ class BookingServiceImplTest {
         when(userRepository.findById(userId))
                 .thenReturn(Optional.of(customer));
 
-        when(vehicleRepository.findById(vehicle.getId()))
+        when(vehicleRepository.findByIdWithLock(vehicle.getId()))
                 .thenReturn(Optional.of(vehicle));
 
         when(
@@ -1183,7 +1183,7 @@ class BookingServiceImplTest {
         when(userRepository.findById(userId))
                 .thenReturn(Optional.of(customer));
 
-        when(vehicleRepository.findById(vehicle.getId()))
+        when(vehicleRepository.findByIdWithLock(vehicle.getId()))
                 .thenReturn(Optional.of(vehicle));
 
         when(
@@ -1253,7 +1253,7 @@ class BookingServiceImplTest {
         when(userRepository.findById(userId))
                 .thenReturn(Optional.of(customer));
 
-        when(vehicleRepository.findById(vehicle.getId()))
+        when(vehicleRepository.findByIdWithLock(vehicle.getId()))
                 .thenReturn(Optional.of(vehicle));
 
         assertThrows(
@@ -1284,7 +1284,7 @@ class BookingServiceImplTest {
         when(userRepository.findById(userId))
                 .thenReturn(Optional.of(customer));
 
-        when(vehicleRepository.findById(vehicle.getId()))
+        when(vehicleRepository.findByIdWithLock(vehicle.getId()))
                 .thenReturn(Optional.of(vehicle));
 
         when(
