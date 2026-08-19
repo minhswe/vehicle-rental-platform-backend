@@ -14,11 +14,17 @@ import com.rentalplatform.backend.vehicle.enums.VehicleStatus;
 import com.rentalplatform.backend.vehicle.repository.VehicleRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -30,9 +36,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
+@Testcontainers
 @SpringBootTest
 @ActiveProfiles("test")
 class BookingConcurrencyTest {
+
+    @Container
+    @ServiceConnection
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
 
     @Autowired
     private BookingService bookingService;
@@ -111,8 +122,9 @@ class BookingConcurrencyTest {
     }
 
     @Test
+    @DisplayName("Simulate 10 concurrent users booking the exact same vehicle for the exact same dates")
     void testConcurrentBookingCreation() throws InterruptedException {
-        int numberOfThreads = 5;
+        int numberOfThreads = 10;
         ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
         CountDownLatch startLatch = new CountDownLatch(1);
         CountDownLatch doneLatch = new CountDownLatch(numberOfThreads);
@@ -128,7 +140,7 @@ class BookingConcurrencyTest {
         for (int i = 0; i < numberOfThreads; i++) {
             executorService.submit(() -> {
                 try {
-                    startLatch.await(); // wait until all threads are ready
+                    startLatch.await(); // wait until all 10 threads are ready
                     bookingService.createBooking(request);
                     successCount.incrementAndGet();
                 } catch (AppException e) {
@@ -136,6 +148,8 @@ class BookingConcurrencyTest {
                         e.getErrorCode() == ErrorCode.VEHICLE_ALREADY_BOOKED_IN_THIS_TIME_RANGE) {
                         conflictCount.incrementAndGet();
                     }
+                } catch (PessimisticLockingFailureException e) {
+                    conflictCount.incrementAndGet();
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 } finally {
@@ -144,11 +158,13 @@ class BookingConcurrencyTest {
             });
         }
 
-        startLatch.countDown(); // Let all threads start at once
-        doneLatch.await(); // Wait for all threads to finish
+        startLatch.countDown(); // Let all 10 threads start at once
+        doneLatch.await(); // Wait for all 10 threads to finish
+
+        executorService.shutdown();
 
         assertEquals(1, successCount.get(), "Only one booking should succeed");
-        assertEquals(numberOfThreads - 1, conflictCount.get(), "Other bookings should fail with conflict");
-        assertEquals(1, bookingRepository.count(), "Only one booking should be created in the database");
+        assertEquals(numberOfThreads - 1, conflictCount.get(), "Other 9 bookings should fail with conflict");
+        assertEquals(1, bookingRepository.count(), "Only one booking should be created in the PostgreSQL database");
     }
 }
