@@ -102,7 +102,8 @@ public enum ErrorCode {
     INVALID_WALLET_STATE(400, "Invalid wallet state"),
     INVALID_AMOUNT(400, "Invalid amount"),
     INVALID_PAYMENT(400, "Invalid payment"),
-    WALLET_ACCESS_DENIED(403, "You do not have permission to access this wallet");
+    WALLET_ACCESS_DENIED(403, "You do not have permission to access this wallet"),
+    CONCURRENT_WALLET_CONFLICT(409, "Concurrent wallet operation conflict. Please try again.");
 
     private final int status;
     private final String message;

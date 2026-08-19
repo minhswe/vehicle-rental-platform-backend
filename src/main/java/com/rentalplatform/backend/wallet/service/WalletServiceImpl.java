@@ -18,6 +18,7 @@ import com.rentalplatform.backend.wallet.constant.WalletHoldStatus;
 import com.rentalplatform.backend.wallet.constant.WalletReferenceType;
 import com.rentalplatform.backend.wallet.constant.WalletTransactionStatus;
 import com.rentalplatform.backend.wallet.constant.WalletTransactionType;
+import com.rentalplatform.backend.wallet.exception.ConcurrentWalletOperationException;
 import com.rentalplatform.backend.wallet.mapper.WalletHoldMapper;
 import com.rentalplatform.backend.wallet.mapper.WalletMapper;
 import com.rentalplatform.backend.wallet.repository.WalletHoldRepository;
@@ -28,6 +29,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -83,6 +88,11 @@ public class WalletServiceImpl implements WalletService {
     }
 
 
+    @Retryable(
+            retryFor = ObjectOptimisticLockingFailureException.class,
+            maxAttempts = 5,
+            backoff = @Backoff(delay = 50, maxDelay = 500, multiplier = 2, random = true)
+    )
     @Override
     public WalletResponse topUp(UUID userId, BigDecimal amount) {
 
@@ -131,6 +141,11 @@ public class WalletServiceImpl implements WalletService {
 
     }
 
+    @Retryable(
+            retryFor = ObjectOptimisticLockingFailureException.class,
+            maxAttempts = 5,
+            backoff = @Backoff(delay = 50, maxDelay = 500, multiplier = 2, random = true)
+    )
     @Override
     public WalletHoldResponse holdAmount(UUID userId, UUID bookingId, UUID paymentId, BigDecimal amount) {
 
@@ -287,6 +302,11 @@ public class WalletServiceImpl implements WalletService {
         return walletHoldMapper.toResponse(hold);
     }
 
+    @Retryable(
+            retryFor = ObjectOptimisticLockingFailureException.class,
+            maxAttempts = 5,
+            backoff = @Backoff(delay = 50, maxDelay = 500, multiplier = 2, random = true)
+    )
     @Override
     public WalletHoldResponse releaseHold(UUID holdId) {
         log.info(
@@ -357,6 +377,11 @@ public class WalletServiceImpl implements WalletService {
         return walletHoldMapper.toResponse(hold);
     }
 
+    @Retryable(
+            retryFor = ObjectOptimisticLockingFailureException.class,
+            maxAttempts = 5,
+            backoff = @Backoff(delay = 50, maxDelay = 500, multiplier = 2, random = true)
+    )
     @Override
     public WalletHoldResponse consumeHold(UUID holdId) {
 
@@ -445,6 +470,11 @@ public class WalletServiceImpl implements WalletService {
         return walletHoldMapper.toResponse(hold);
     }
 
+    @Retryable(
+            retryFor = ObjectOptimisticLockingFailureException.class,
+            maxAttempts = 5,
+            backoff = @Backoff(delay = 50, maxDelay = 500, multiplier = 2, random = true)
+    )
     @Override
     public WalletResponse refund(UUID userId, UUID paymentId, BigDecimal amount) {
 
@@ -490,6 +520,32 @@ public class WalletServiceImpl implements WalletService {
         );
 
         return walletMapper.toResponse(wallet);
+    }
+
+    // =============== RECOVERY METHODS FOR RETRY EXHAUSTION ===============
+
+    @Recover
+    public WalletResponse recoverTopUp(ObjectOptimisticLockingFailureException ex, UUID userId, BigDecimal amount) {
+        log.error("Optimistic locking failure during wallet topUp after retries. userId={}, amount={}", userId, amount, ex);
+        throw new ConcurrentWalletOperationException("Concurrent update conflict during wallet topUp for user: " + userId, ex);
+    }
+
+    @Recover
+    public WalletHoldResponse recoverHoldAmount(ObjectOptimisticLockingFailureException ex, UUID userId, UUID bookingId, UUID paymentId, BigDecimal amount) {
+        log.error("Optimistic locking failure during wallet holdAmount after retries. userId={}, bookingId={}", userId, bookingId, ex);
+        throw new ConcurrentWalletOperationException("Concurrent update conflict during wallet hold for user: " + userId, ex);
+    }
+
+    @Recover
+    public WalletHoldResponse recoverHoldOperation(ObjectOptimisticLockingFailureException ex, UUID holdId) {
+        log.error("Optimistic locking failure during wallet hold update after retries. holdId={}", holdId, ex);
+        throw new ConcurrentWalletOperationException("Concurrent update conflict during wallet hold operation for holdId: " + holdId, ex);
+    }
+
+    @Recover
+    public WalletResponse recoverRefund(ObjectOptimisticLockingFailureException ex, UUID userId, UUID paymentId, BigDecimal amount) {
+        log.error("Optimistic locking failure during wallet refund after retries. userId={}, paymentId={}", userId, paymentId, ex);
+        throw new ConcurrentWalletOperationException("Concurrent update conflict during wallet refund for user: " + userId, ex);
     }
 
     @Override
