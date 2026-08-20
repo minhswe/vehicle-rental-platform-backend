@@ -76,7 +76,7 @@ public class GlobalExceptionHandler {
         log.error("Unexpected error: ", ex);
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                             .body(ApiResponse.error(ErrorCode.INTERNAL_ERROR, ex.getMessage()));
+                             .body(ApiResponse.error(ErrorCode.INTERNAL_ERROR, "An unexpected internal server error occurred. Please try again later."));
     }
 
     // ===================== HELPER =====================
