@@ -13,7 +13,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.Instant;
 import java.util.List;
@@ -29,9 +28,6 @@ class RefreshTokenServiceTest {
 
     @Mock
     private RefreshTokenRepository refreshTokenRepository;
-
-    @Mock
-    private PasswordEncoder passwordEncoder;
 
     @Mock
     private JwtService jwtService;
@@ -209,18 +205,56 @@ class RefreshTokenServiceTest {
         when(refreshTokenRepository.findByTokenId(oldJti))
                 .thenReturn(Optional.of(existing));
 
-        when(passwordEncoder.encode(newToken))
-                .thenReturn("encoded-new-token");
-
         refreshTokenService.rotateRefreshToken(
                 oldToken,
                 newToken
         );
 
+        ArgumentCaptor<RefreshToken> captor = ArgumentCaptor.forClass(RefreshToken.class);
         verify(refreshTokenRepository, times(2))
-                .save(Mockito.any());
+                .save(captor.capture());
+
+        RefreshToken newlySavedToken = captor.getAllValues().get(1);
+        assertEquals(invokeHash(newToken), newlySavedToken.getHashedToken());
 
         assertTrue(existing.isRevoked());
+    }
+
+    @Test
+    @DisplayName("Should verify rotated refresh token successfully")
+    void shouldVerifyRotatedRefreshTokenSuccessfully() {
+
+        String oldToken = "old-token";
+        String newToken = "new-token";
+
+        UUID oldJti = UUID.randomUUID();
+        UUID newJti = UUID.randomUUID();
+
+        RefreshToken existing = createValidToken(invokeHash(oldToken));
+
+        when(jwtService.extractJti(oldToken)).thenReturn(oldJti);
+        when(jwtService.extractJti(newToken)).thenReturn(newJti);
+
+        when(refreshTokenRepository.findByTokenId(oldJti)).thenReturn(Optional.of(existing));
+
+        // Act: Rotate token
+        refreshTokenService.rotateRefreshToken(oldToken, newToken);
+
+        // Capture the newly rotated token saved in repository
+        ArgumentCaptor<RefreshToken> captor = ArgumentCaptor.forClass(RefreshToken.class);
+        verify(refreshTokenRepository, times(2)).save(captor.capture());
+        RefreshToken newlySavedToken = captor.getAllValues().get(1);
+
+        // Mock lookup for the rotated token during verification
+        when(refreshTokenRepository.findByTokenId(newJti)).thenReturn(Optional.of(newlySavedToken));
+
+        // Act & Assert: Verification succeeds with SHA-256 matching
+        RefreshToken verifiedToken = refreshTokenService.verifyRefreshToken(newToken);
+
+        assertNotNull(verifiedToken);
+        assertEquals(newJti, verifiedToken.getTokenId());
+        assertFalse(verifiedToken.isRevoked());
+        assertEquals(invokeHash(newToken), verifiedToken.getHashedToken());
     }
 
     @Test

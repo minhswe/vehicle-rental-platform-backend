@@ -5,7 +5,6 @@ import com.rentalplatform.backend.auth.repository.RefreshTokenRepository;
 import com.rentalplatform.backend.common.exception.AppException;
 import com.rentalplatform.backend.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +29,6 @@ public class RefreshTokenService {
 
     //expiry (7 days)
     private final static long REFRESH_TOKEN_DURATION = 7 * 24 * 60 * 60;
-    private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
     //=== SAVE TOKEN ===
@@ -101,7 +99,7 @@ public class RefreshTokenService {
         refreshTokenRepository.save(existing);
 
         //create new token
-        String hashedToken = passwordEncoder.encode(rawNewToken);
+        String hashedToken = hashToken(rawNewToken);
         UUID tokenId =  jwtService.extractJti(rawNewToken);
 
         RefreshToken newRefreshToken = new RefreshToken();
