@@ -1,10 +1,7 @@
 package com.rentalplatform.backend.auth.security;
 
 import com.rentalplatform.backend.auth.service.JwtService;
-import com.rentalplatform.backend.common.exception.AppException;
-import com.rentalplatform.backend.common.exception.ErrorCode;
-import com.rentalplatform.backend.user.entity.User;
-import com.rentalplatform.backend.user.repository.UserRepository;
+import com.rentalplatform.backend.user.constant.UserRole;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,73 +9,56 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final UserRepository userRepository;
-    private final CustomUserDetailsService customUserDetailsService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        //get header authorization
         final String authHeader = request.getHeader("Authorization");
-        //If there is no header or not start with "Bearer"
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
         try {
-            //separate token
             final String jwt = authHeader.substring(7);
-            //get email from token
-            final String email = jwtService.extractEmail(jwt);
-            //only handle if there is no Authentication in SecurityContext
-            if (email != null && SecurityContextHolder.getContext()
-                                                      .getAuthentication() == null) {
-                //find user in database
-                User user = userRepository.findByEmail(email)
-                                          .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+            if (jwtService.isTokenValid(jwt) && SecurityContextHolder.getContext().getAuthentication() == null) {
+                String email = jwtService.extractEmail(jwt);
+                UUID userId = jwtService.extractUserId(jwt);
+                UserRole role = jwtService.extractRole(jwt);
 
-                if (jwtService.isTokenValid(jwt, user)) {
-
-                    UserDetails userDetails =
-                            customUserDetailsService.loadUserByUsername(email);
+                if (email != null && userId != null && role != null) {
+                    CustomUserPrincipal principal = new CustomUserPrincipal(userId, email, role);
 
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(
-                                    userDetails,
+                                    principal,
                                     null,
-                                    userDetails.getAuthorities()
+                                    principal.getAuthorities()
                             );
 
                     authToken.setDetails(
-                            new WebAuthenticationDetailsSource()
-                                    .buildDetails(request)
+                            new WebAuthenticationDetailsSource().buildDetails(request)
                     );
 
-                    SecurityContextHolder.getContext()
-                                         .setAuthentication(authToken);
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
-
-
         } catch (Exception ignored) {
-            //ignore
+            // ignore invalid token exception
         }
         filterChain.doFilter(request, response);
-
     }
 }

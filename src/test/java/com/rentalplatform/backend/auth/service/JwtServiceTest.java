@@ -124,6 +124,21 @@ public class JwtServiceTest {
     }
 
     @Test
+    @DisplayName("Should extract role from token")
+    void shouldExtractRole() {
+        String token = jwtService.generateAccessToken(principal);
+        UserRole role = jwtService.extractRole(token);
+        assertEquals(UserRole.CUSTOMER, role);
+    }
+
+    @Test
+    @DisplayName("Should return true when token is statelessly valid")
+    void shouldReturnTrueWhenTokenStatelesslyValid() {
+        String token = jwtService.generateAccessToken(principal);
+        assertTrue(jwtService.isTokenValid(token));
+    }
+
+    @Test
     @DisplayName("Should return true when token is valid")
     void shouldReturnTrueWhenTokenValid() {
 

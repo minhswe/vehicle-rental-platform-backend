@@ -26,11 +26,26 @@ public class CustomUserPrincipal implements UserDetails {
     private final UserStatus status;
 
     public CustomUserPrincipal(User user) {
+        if (user == null) {
+            throw new NullPointerException("User cannot be null");
+        }
         this.id = user.getId();
         this.email = user.getEmail();
         this.password = user.getPassword();
         this.role = user.getRole();
         this.status = user.getStatus();
+    }
+
+    public CustomUserPrincipal(UUID id, String email, UserRole role, UserStatus status) {
+        this.id = id;
+        this.email = email;
+        this.password = null;
+        this.role = role;
+        this.status = status;
+    }
+
+    public CustomUserPrincipal(UUID id, String email, UserRole role) {
+        this(id, email, role, UserStatus.ACTIVE);
     }
 
 

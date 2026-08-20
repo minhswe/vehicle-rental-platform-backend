@@ -3,6 +3,7 @@ package com.rentalplatform.backend.auth.service;
 import com.rentalplatform.backend.auth.security.CustomUserPrincipal;
 import com.rentalplatform.backend.common.exception.AppException;
 import com.rentalplatform.backend.common.exception.ErrorCode;
+import com.rentalplatform.backend.user.constant.UserRole;
 import com.rentalplatform.backend.user.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -109,10 +110,28 @@ public class JwtService {
         }
     }
 
+    public UserRole extractRole(String token) {
+        String roleStr = extractClaim(
+                token,
+                claims -> claims.get("role", String.class)
+        );
+
+        return roleStr != null ? UserRole.valueOf(roleStr) : null;
+    }
+
+    public boolean isTokenValid(String token) {
+        try {
+            final String email = extractEmail(token);
+            return email != null && !email.isBlank() && !isTokenExpired(token);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     public boolean isTokenValid(String token, User user) {
         try {
             final String email = extractEmail(token);
-            return email.equals(user.getEmail()) && !isTokenExpired(token);
+            return user != null && email.equals(user.getEmail()) && !isTokenExpired(token);
         } catch (Exception e) {
             return false;
         }
