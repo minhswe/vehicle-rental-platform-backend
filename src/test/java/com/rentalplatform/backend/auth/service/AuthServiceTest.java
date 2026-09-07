@@ -55,7 +55,7 @@ class AuthServiceTest {
     private HttpServletRequest httpServletRequest;
 
     @InjectMocks
-    private AuthService authService;
+    private AuthServiceImpl authService;
 
 
     // =========================
@@ -420,5 +420,15 @@ class AuthServiceTest {
 
         verify(refreshTokenService, never())
                 .rotateRefreshToken(any(), any());
+    }
+
+    @Test
+    @DisplayName("Should logout successfully by revoking refresh token")
+    void logout_shouldRevokeRefreshToken() {
+        String refreshToken = "valid-refresh-token";
+
+        authService.logout(refreshToken);
+
+        verify(refreshTokenService).revokeToken(refreshToken);
     }
 }

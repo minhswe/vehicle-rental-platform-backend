@@ -42,6 +42,15 @@ public class ApiResponse<T> {
         return success(data, "Success");
     }
 
+    public static ApiResponse<Void> success(String message) {
+        return ApiResponse.<Void>builder()
+                .success(true)
+                .message(message)
+                .traceId(MDC.get("traceId"))
+                .timestamp(Instant.now())
+                .build();
+    }
+
     //ERROR
     public static <T> ApiResponse<T> error(ErrorCode errorCode, String message) {
         return ApiResponse.<T>builder()

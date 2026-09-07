@@ -16,6 +16,4 @@ public interface UserService {
     UserProfileResponse uploadAvatar(UUID userId, MultipartFile file);
 
     void changePassword(UUID userId, ChangePasswordRequest request);
-
-    void logout(String refreshToken);
 }

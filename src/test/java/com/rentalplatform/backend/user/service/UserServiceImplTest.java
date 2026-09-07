@@ -329,20 +329,4 @@ class UserServiceImplTest {
                 )
         );
     }
-
-    // ======================================
-    // logout
-    // ======================================
-
-    @Test
-    @DisplayName("Should logout successfully")
-    void shouldLogoutSuccessfully() {
-
-        String refreshToken = "refresh-token";
-
-        userService.logout(refreshToken);
-
-        verify(refreshTokenService)
-                .revokeToken(refreshToken);
-    }
 }

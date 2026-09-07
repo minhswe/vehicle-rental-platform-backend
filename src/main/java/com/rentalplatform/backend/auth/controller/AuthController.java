@@ -1,14 +1,13 @@
 package com.rentalplatform.backend.auth.controller;
 
 import com.rentalplatform.backend.auth.dto.reponse.AuthResponse;
+import com.rentalplatform.backend.auth.dto.request.LogOutDeviceRequest;
 import com.rentalplatform.backend.auth.dto.request.LoginRequest;
 import com.rentalplatform.backend.auth.dto.request.RefreshTokenRequest;
 import com.rentalplatform.backend.auth.dto.request.RegisterRequest;
 import com.rentalplatform.backend.auth.service.AuthService;
 import com.rentalplatform.backend.common.constant.ApiPaths;
 import com.rentalplatform.backend.common.response.ApiResponse;
-import com.rentalplatform.backend.auth.dto.request.LogOutDeviceRequest;
-import com.rentalplatform.backend.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,10 +20,8 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping(ApiPaths.API_V1 + "/auth")
 @RequiredArgsConstructor
-
 public class AuthController {
     private final AuthService authService;
-    private final UserService userService;
 
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
@@ -49,14 +46,10 @@ public class AuthController {
                 .body(ApiResponse.success(response));
     }
 
-    /**
-     * POST /users/me/logout
-     */
     @PostMapping("/logout")
-    public void logout(
-            @Valid @RequestBody LogOutDeviceRequest request
-    ) {
-        userService.logout(request.getRefreshToken());
+    public ResponseEntity<ApiResponse<Void>> logout(@Valid @RequestBody LogOutDeviceRequest request) {
+        authService.logout(request.getRefreshToken());
+        return ResponseEntity.ok(ApiResponse.success("User logged out successfully"));
     }
 
     @PostMapping("/refresh-token")

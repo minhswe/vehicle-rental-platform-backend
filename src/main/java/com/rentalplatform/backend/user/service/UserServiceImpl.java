@@ -106,12 +106,6 @@ public class UserServiceImpl implements UserService {
         refreshTokenService.revokeAllByUser(user.getId());
     }
 
-    @Override
-    public void logout(String refreshToken) {
-        refreshTokenService.revokeToken(refreshToken);
-
-    }
-
     private User findUser(UUID userId) {
         return userRepository.findById(userId)
                              .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));

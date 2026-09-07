@@ -2,13 +2,13 @@ package com.rentalplatform.backend.auth.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rentalplatform.backend.auth.dto.reponse.AuthResponse;
+import com.rentalplatform.backend.auth.dto.request.LogOutDeviceRequest;
 import com.rentalplatform.backend.auth.dto.request.LoginRequest;
 import com.rentalplatform.backend.auth.dto.request.RefreshTokenRequest;
 import com.rentalplatform.backend.auth.dto.request.RegisterRequest;
 import com.rentalplatform.backend.auth.service.AuthService;
 import com.rentalplatform.backend.common.exception.GlobalExceptionHandler;
 import com.rentalplatform.backend.user.constant.UserRole;
-import com.rentalplatform.backend.user.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -24,6 +24,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -37,9 +39,6 @@ class AuthControllerTest {
 
     @Mock
     private AuthService authService;
-
-    @Mock
-    private UserService userService;
 
     @InjectMocks
     private AuthController authController;
@@ -172,6 +171,44 @@ class AuthControllerTest {
                     .andExpect(jsonPath("$.success").value(false))
                     .andExpect(jsonPath("$.errors.email").value("Email is required"))
                     .andExpect(jsonPath("$.errors.password").value("Password is required"));
+        }
+    }
+
+    @Nested
+    @DisplayName("POST /api/v1/auth/logout")
+    class Logout {
+
+        @Test
+        @DisplayName("Should return 200 OK with standardized ApiResponse envelope when logout request is valid")
+        void logout_Success() throws Exception {
+            LogOutDeviceRequest request = LogOutDeviceRequest.builder()
+                    .refreshToken("valid-refresh-token")
+                    .build();
+
+            mockMvc.perform(post("/api/v1/auth/logout")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.message").value("User logged out successfully"))
+                    .andExpect(jsonPath("$.data").doesNotExist());
+
+            verify(authService).logout("valid-refresh-token");
+        }
+
+        @Test
+        @DisplayName("Should return 400 Bad Request when logout refresh token is blank")
+        void logout_ValidationFailure_BlankToken() throws Exception {
+            LogOutDeviceRequest request = LogOutDeviceRequest.builder()
+                    .refreshToken("")
+                    .build();
+
+            mockMvc.perform(post("/api/v1/auth/logout")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.success").value(false))
+                    .andExpect(jsonPath("$.errors.refreshToken").value("Refresh token is required"));
         }
     }
 
