@@ -24,7 +24,7 @@ public class GlobalExceptionHandler {
             MethodArgumentNotValidException ex,
             HttpServletRequest request) {
 
-        String requestPath = request.getRequestURI();
+        String requestPath = request != null ? request.getRequestURI() : "";
 
         // allow swagger to bypass
         if (isSwaggerPath(requestPath)) {
@@ -32,14 +32,17 @@ public class GlobalExceptionHandler {
                                  .body(ApiResponse.error(ErrorCode.VALIDATION_ERROR, "Validation error"));
         }
 
-        String message = ex.getBindingResult()
-                           .getFieldErrors()
-                           .stream()
-                           .map(err -> err.getField() + ": " + err.getDefaultMessage())
-                           .collect(Collectors.joining(", "));
+        java.util.Map<String, String> errors = ex.getBindingResult()
+                                                 .getFieldErrors()
+                                                 .stream()
+                                                 .collect(Collectors.toMap(
+                                                         org.springframework.validation.FieldError::getField,
+                                                         err -> err.getDefaultMessage() != null ? err.getDefaultMessage() : "Invalid value",
+                                                         (existing, replacement) -> existing + "; " + replacement
+                                                 ));
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                             .body(ApiResponse.error(ErrorCode.VALIDATION_ERROR, message));
+                             .body(ApiResponse.validationError(errors));
     }
 
     // ===================== BUSINESS EXCEPTION =====================
@@ -48,7 +51,7 @@ public class GlobalExceptionHandler {
             BaseException ex,
             HttpServletRequest request) {
 
-        String requestPath = request.getRequestURI();
+        String requestPath = request != null ? request.getRequestURI() : "";
 
         // usually NOT needed, but keeping consistency
         if (isSwaggerPath(requestPath)) {
@@ -67,7 +70,7 @@ public class GlobalExceptionHandler {
             Exception ex,
             HttpServletRequest request) {
 
-        String requestPath = request.getRequestURI();
+        String requestPath = request != null ? request.getRequestURI() : "";
 
         if (isSwaggerPath(requestPath)) {
             throw new RuntimeException(ex);

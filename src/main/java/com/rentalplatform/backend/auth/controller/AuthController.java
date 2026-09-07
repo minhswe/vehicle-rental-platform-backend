@@ -35,14 +35,14 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<AuthResponse>> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody RegisterRequest request) {
         AuthResponse response = authService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(response));
     }
 
     @PostMapping("/login")
-    public  ResponseEntity<ApiResponse<AuthResponse>> login(@RequestBody LoginRequest loginRequest,
+    public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest loginRequest,
                                                             HttpServletRequest httpServletRequest) {
         AuthResponse response = authService.login(loginRequest, httpServletRequest);
         return ResponseEntity.status(HttpStatus.OK)
@@ -60,11 +60,11 @@ public class AuthController {
     }
 
     @PostMapping("/refresh-token")
-        public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(@RequestBody RefreshTokenRequest request,
-            HttpServletRequest httpServiceRequest){
-            AuthResponse response = authService.refreshToken(request.getRefreshToken());
-            return  ResponseEntity.status(HttpStatus.OK)
-                    .body(ApiResponse.success(response));
-        }
+    public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(@Valid @RequestBody RefreshTokenRequest request,
+                                                                   HttpServletRequest httpServiceRequest) {
+        AuthResponse response = authService.refreshToken(request.getRefreshToken());
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success(response));
+    }
 
 }
