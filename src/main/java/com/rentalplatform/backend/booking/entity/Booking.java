@@ -10,14 +10,13 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
 @Table(name = "bookings")
 @Getter
 @Setter
-
 public class Booking extends AuditEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -35,9 +34,9 @@ public class Booking extends AuditEntity {
     @JoinColumn(name = "owner_id", nullable = false)
     private VehicleOwner owner;
 
-    private LocalDateTime startTime;
+    private Instant startTime;
 
-    private LocalDateTime endTime;
+    private Instant endTime;
 
     private Integer totalDays;
 

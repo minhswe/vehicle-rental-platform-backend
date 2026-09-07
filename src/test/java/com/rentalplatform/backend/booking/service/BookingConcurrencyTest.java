@@ -27,7 +27,8 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -134,8 +135,8 @@ class BookingConcurrencyTest {
 
         CreateBookingRequest request = new CreateBookingRequest();
         request.setVehicleId(vehicle.getId());
-        request.setStartTime(LocalDateTime.now().plusDays(1));
-        request.setEndTime(LocalDateTime.now().plusDays(3));
+        request.setStartTime(Instant.now().plus(1, ChronoUnit.DAYS));
+        request.setEndTime(Instant.now().plus(3, ChronoUnit.DAYS));
 
         for (int i = 0; i < numberOfThreads; i++) {
             executorService.submit(() -> {

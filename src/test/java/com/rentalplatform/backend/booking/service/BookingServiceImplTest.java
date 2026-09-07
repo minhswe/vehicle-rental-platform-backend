@@ -30,7 +30,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
@@ -39,7 +38,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -80,7 +83,9 @@ class BookingServiceImplTest {
     @Mock
     private DomainEventPublisher eventPublisher;
 
-    @InjectMocks
+    private final Instant FIXED_NOW = Instant.parse("2026-09-07T12:00:00Z");
+    private final Clock clock = Clock.fixed(FIXED_NOW, ZoneOffset.UTC);
+
     private BookingServiceImpl bookingService;
 
     private UUID userId;
@@ -97,6 +102,20 @@ class BookingServiceImplTest {
 
     @BeforeEach
     void setUp() {
+        bookingService = new BookingServiceImpl(
+                bookingRepository,
+                vehicleRepository,
+                userRepository,
+                bookingMapper,
+                authenticationFacade,
+                ownerContextService,
+                bookingStatusLogRepository,
+                paymentService,
+                bookingEventFactory,
+                eventPublisher,
+                clock
+        );
+
         userId = UUID.randomUUID();
         ownerUserId = UUID.randomUUID();
         ownerId = UUID.randomUUID();
@@ -137,8 +156,8 @@ class BookingServiceImplTest {
                 new CreateBookingRequest();
 
         request.setVehicleId(vehicle.getId());
-        request.setStartTime(LocalDateTime.now().plusDays(1));
-        request.setEndTime(LocalDateTime.now().plusDays(3));
+        request.setStartTime(FIXED_NOW.plus(1, ChronoUnit.DAYS));
+        request.setEndTime(FIXED_NOW.plus(3, ChronoUnit.DAYS));
 
         when(authenticationFacade.getCurrentUserId())
                 .thenReturn(userId);
@@ -275,8 +294,8 @@ class BookingServiceImplTest {
 
         CreateBookingRequest request = new CreateBookingRequest();
         request.setVehicleId(vehicle.getId());
-        request.setStartTime(LocalDateTime.now().plusDays(2));
-        request.setEndTime(LocalDateTime.now().plusDays(1));
+        request.setStartTime(FIXED_NOW.plus(2, ChronoUnit.DAYS));
+        request.setEndTime(FIXED_NOW.plus(1, ChronoUnit.DAYS));
 
         when(authenticationFacade.getCurrentUserId())
                 .thenReturn(userId);
@@ -299,14 +318,14 @@ class BookingServiceImplTest {
     }
 
     @Test
-    @DisplayName("Should throw INVALID_START_TIME when start time is in the past")
+    @DisplayName("Should throw INVALID_START_TIME when start time is strictly before fixed now")
     void createBooking_ShouldThrowInvalidStartTime() {
 
         CreateBookingRequest request = new CreateBookingRequest();
 
         request.setVehicleId(vehicle.getId());
-        request.setStartTime(LocalDateTime.now().minusHours(1));
-        request.setEndTime(LocalDateTime.now().plusDays(1));
+        request.setStartTime(FIXED_NOW.minus(1, ChronoUnit.HOURS));
+        request.setEndTime(FIXED_NOW.plus(1, ChronoUnit.DAYS));
 
         when(authenticationFacade.getCurrentUserId())
                 .thenReturn(userId);
@@ -329,14 +348,70 @@ class BookingServiceImplTest {
     }
 
     @Test
+    @DisplayName("Should succeed when start time is in the future relative to fixed clock")
+    void createBooking_ShouldSucceed_WhenStartTimeIsInFuture() {
+
+        CreateBookingRequest request = new CreateBookingRequest();
+
+        request.setVehicleId(vehicle.getId());
+        request.setStartTime(FIXED_NOW.plus(1, ChronoUnit.HOURS));
+        request.setEndTime(FIXED_NOW.plus(1, ChronoUnit.DAYS));
+
+        when(authenticationFacade.getCurrentUserId()).thenReturn(userId);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(customer));
+        when(vehicleRepository.findByIdWithLock(vehicle.getId())).thenReturn(Optional.of(vehicle));
+        when(bookingRepository.existsByVehicleIdAndBookingStatusInAndStartTimeLessThanAndEndTimeGreaterThan(
+                any(), any(), any(), any()
+        )).thenReturn(false);
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(i -> i.getArgument(0));
+        when(bookingMapper.toResponse(any())).thenReturn(bookingResponse);
+        when(bookingEventFactory.created(any(Booking.class))).thenReturn(mock(BookingCreatedEvent.class));
+
+        BookingResponse response = bookingService.createBooking(request);
+        assertNotNull(response);
+    }
+
+    @Test
+    @DisplayName("Should handle booking request times across different timezone offsets consistently")
+    void createBooking_ShouldHandleTimezoneOffsetsConsistently() {
+        CreateBookingRequest request = new CreateBookingRequest();
+        request.setVehicleId(vehicle.getId());
+
+        // Client in UTC+7 sends 2026-09-08T19:00:00+07:00 (which is 2026-09-08T12:00:00Z)
+        OffsetDateTime clientStartUtcPlus7 = OffsetDateTime.of(2026, 9, 8, 19, 0, 0, 0, ZoneOffset.ofHours(7));
+        OffsetDateTime clientEndUtcPlus7 = OffsetDateTime.of(2026, 9, 10, 19, 0, 0, 0, ZoneOffset.ofHours(7));
+
+        // Client in UTC-5 sends 2026-09-08T07:00:00-05:00 (which is also 2026-09-08T12:00:00Z)
+        OffsetDateTime clientStartUtcMinus5 = OffsetDateTime.of(2026, 9, 8, 7, 0, 0, 0, ZoneOffset.ofHours(-5));
+
+        assertEquals(clientStartUtcPlus7.toInstant(), clientStartUtcMinus5.toInstant());
+
+        request.setStartTime(clientStartUtcPlus7.toInstant());
+        request.setEndTime(clientEndUtcPlus7.toInstant());
+
+        when(authenticationFacade.getCurrentUserId()).thenReturn(userId);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(customer));
+        when(vehicleRepository.findByIdWithLock(vehicle.getId())).thenReturn(Optional.of(vehicle));
+        when(bookingRepository.existsByVehicleIdAndBookingStatusInAndStartTimeLessThanAndEndTimeGreaterThan(
+                any(), any(), any(), any()
+        )).thenReturn(false);
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(bookingMapper.toResponse(any())).thenReturn(bookingResponse);
+        when(bookingEventFactory.created(any(Booking.class))).thenReturn(mock(BookingCreatedEvent.class));
+
+        BookingResponse result = bookingService.createBooking(request);
+        assertNotNull(result);
+    }
+
+    @Test
     @DisplayName("Should throw VEHICLE_ALREADY_BOOKED_IN_THIS_TIME_RANGE when booking overlaps")
     void createBooking_ShouldThrowVehicleAlreadyBooked() {
 
         CreateBookingRequest request = new CreateBookingRequest();
 
         request.setVehicleId(vehicle.getId());
-        request.setStartTime(LocalDateTime.now().plusDays(1));
-        request.setEndTime(LocalDateTime.now().plusDays(3));
+        request.setStartTime(FIXED_NOW.plus(1, ChronoUnit.DAYS));
+        request.setEndTime(FIXED_NOW.plus(3, ChronoUnit.DAYS));
 
         when(authenticationFacade.getCurrentUserId())
                 .thenReturn(userId);
@@ -697,6 +772,7 @@ class BookingServiceImplTest {
         verify(bookingStatusLogRepository)
                 .save(any(BookingStatusLog.class));
     }
+
     @Test
     @DisplayName("Should throw INVALID_BOOKING_STATUS when booking is not pending")
     void rejectBooking_ShouldThrowInvalidStatus() {
@@ -1078,8 +1154,8 @@ class BookingServiceImplTest {
                 new CreateBookingRequest();
 
         request.setVehicleId(vehicle.getId());
-        request.setStartTime(LocalDateTime.now().plusDays(1));
-        request.setEndTime(LocalDateTime.now().plusDays(4));
+        request.setStartTime(FIXED_NOW.plus(1, ChronoUnit.DAYS));
+        request.setEndTime(FIXED_NOW.plus(4, ChronoUnit.DAYS));
 
         when(authenticationFacade.getCurrentUserId())
                 .thenReturn(userId);
@@ -1168,11 +1244,9 @@ class BookingServiceImplTest {
 
         request.setVehicleId(vehicle.getId());
 
-        LocalDateTime start =
-                LocalDateTime.now().plusDays(1);
+        Instant start = FIXED_NOW.plus(1, ChronoUnit.DAYS);
 
-        LocalDateTime end =
-                start.plusHours(5);
+        Instant end = start.plus(5, ChronoUnit.HOURS);
 
         request.setStartTime(start);
         request.setEndTime(end);
@@ -1240,11 +1314,11 @@ class BookingServiceImplTest {
         request.setVehicleId(vehicle.getId());
 
         request.setStartTime(
-                LocalDateTime.now().plusDays(2)
+                FIXED_NOW.plus(2, ChronoUnit.DAYS)
         );
 
         request.setEndTime(
-                LocalDateTime.now().plusDays(1)
+                FIXED_NOW.plus(1, ChronoUnit.DAYS)
         );
 
         when(authenticationFacade.getCurrentUserId())
@@ -1275,8 +1349,8 @@ class BookingServiceImplTest {
                 new CreateBookingRequest();
 
         request.setVehicleId(vehicle.getId());
-        request.setStartTime(LocalDateTime.now().plusDays(1));
-        request.setEndTime(LocalDateTime.now().plusDays(3));
+        request.setStartTime(FIXED_NOW.plus(1, ChronoUnit.DAYS));
+        request.setEndTime(FIXED_NOW.plus(3, ChronoUnit.DAYS));
 
         when(authenticationFacade.getCurrentUserId())
                 .thenReturn(userId);

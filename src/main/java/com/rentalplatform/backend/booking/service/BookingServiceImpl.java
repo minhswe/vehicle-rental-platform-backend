@@ -25,13 +25,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.dao.QueryTimeoutException;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.Instant;
-import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Set;
@@ -50,10 +50,9 @@ public class BookingServiceImpl implements BookingService {
     private final OwnerContextService ownerContextService;
     private final BookingStatusLogRepository bookingStatusLogRepository;
     private final PaymentService paymentService;
-
     private final BookingEventFactory bookingEventFactory;
-
     private final DomainEventPublisher eventPublisher;
+    private final Clock clock;
 
     private static final List<BookingStatus> BLOCKING_STATUSES =
             List.of(
@@ -101,8 +100,10 @@ public class BookingServiceImpl implements BookingService {
         // Calculate days
         long days = ChronoUnit.DAYS.between(
                 request.getStartTime()
+                       .atZone(ZoneOffset.UTC)
                        .toLocalDate(),
                 request.getEndTime()
+                       .atZone(ZoneOffset.UTC)
                        .toLocalDate()
         );
 
@@ -279,7 +280,7 @@ public class BookingServiceImpl implements BookingService {
         log.setBooking(booking);
         log.setOldStatus(oldStatus);
         log.setNewStatus(newStatus);
-        log.setChangedAt(Instant.now());
+        log.setChangedAt(Instant.now(clock));
         log.setChangedBy(authenticationFacade.getCurrentUserId());
 
         bookingStatusLogRepository.save(log);
@@ -373,15 +374,15 @@ public class BookingServiceImpl implements BookingService {
         }
 
         if (request.getStartTime()
-                   .isBefore(LocalDateTime.now())) {
+                   .isBefore(Instant.now(clock))) {
             throw new AppException(ErrorCode.INVALID_START_TIME);
         }
     }
 
     private void validateVehicleAvailability(
             UUID vehicleId,
-            LocalDateTime startTime,
-            LocalDateTime endTime
+            Instant startTime,
+            Instant endTime
     ) {
 
         boolean hasConflict =
