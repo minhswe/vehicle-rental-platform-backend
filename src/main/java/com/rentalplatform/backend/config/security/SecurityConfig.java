@@ -37,8 +37,19 @@ public class SecurityConfig {
             .authorizeHttpRequests(
                     auth -> auth.requestMatchers("/auth/**", "/public/**", "/v3/api-docs/**", "/swagger-ui/**",
                                                  "/swagger-ui.html")
-
                                 .permitAll()
+
+                                // Unauthenticated access to container health and Kubernetes liveness/readiness probes
+                                .requestMatchers("/actuator/health", "/actuator/health/liveness", "/actuator/health/readiness")
+                                .permitAll()
+
+                                // Secure Prometheus scraping and metrics endpoints behind monitoring/admin roles
+                                .requestMatchers("/actuator/prometheus", "/actuator/metrics", "/actuator/metrics/**")
+                                .hasAnyRole("MONITORING", "ACTUATOR", UserRole.ADMIN.name(), UserRole.SUPER_ADMIN.name())
+
+                                // Secure all other management endpoints behind monitoring/admin roles
+                                .requestMatchers("/actuator", "/actuator/**")
+                                .hasAnyRole("MONITORING", "ACTUATOR", UserRole.ADMIN.name(), UserRole.SUPER_ADMIN.name())
 
                                 .requestMatchers(HttpMethod.GET, "/vehicles/**")
                                 .permitAll()

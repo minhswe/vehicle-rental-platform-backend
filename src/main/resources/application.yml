@@ -1,0 +1,70 @@
+spring:
+  application:
+    name: vehicle-rental-platform
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/vehicle_rental_db}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+
+server:
+  tomcat:
+    basedir: .tomcat
+
+# ==============================================================================
+# Production Observability & Hardened Actuator Configuration
+# ==============================================================================
+management:
+  server:
+    # Dedicated internal management port isolation (Optional / Recommended for infra security)
+    # port: 8081
+    # Base path for management endpoints
+    base-path: /actuator
+  endpoints:
+    web:
+      exposure:
+        # Endpoint Exposure (Least Privilege): Expose ONLY required endpoints.
+        # NEVER use wildcards (*) in production configurations to prevent accidental exposure of sensitive runtime state.
+        include: health, info, prometheus, metrics
+  endpoint:
+    health:
+      # Kubernetes Probes: Enable container liveness (/actuator/health/liveness) and readiness (/actuator/health/readiness) probe groups explicitly.
+      probes:
+        enabled: true
+      # Health Details Visibility: Restrict detailed diagnostic information (e.g. DB connection, disk space) to authorized requests.
+      # Unauthenticated requests receive high-level status ("UP"/"DOWN") without sensitive backend details.
+      show-details: when-authorized
+    prometheus:
+      # Enable Prometheus metric scraper endpoint (/actuator/prometheus)
+      enabled: true
+  metrics:
+    enable:
+      # Explicitly enable core metric collectors: JVM memory/GC, CPU/process, HikariCP pool saturation, and HTTP server request metrics
+      jvm: true
+      process: true
+      hikaricp: true
+      http: true
+    tags:
+      # Micrometer Common Tags: Global dimensions attached to all exported metrics for Prometheus filtering & Grafana dashboards
+      application: ${spring.application.name:vehicle-rental-platform}
+      env: ${ENVIRONMENT:local}
+
+jwt:
+  secret: ${JWT_SECRET_KEY:c3VwZXItc2VjcmV0LWtleS1mb3ItbG9jYWwtZGV2ZWxvcG1lbnQtMjU2Yml0cw==}
+  access-token-expiration: ${ACCESS_TOKEN_EXPIRATION:15m}
+  refresh-token-expiration: ${REFRESH_TOKEN_EXPIRATION:7d}
+
+logging:
+  pattern:
+    level: "%5p [traceId:%X{traceId}]"
+
+wallet:
+  hold-expiration-minutes: ${WALLET_HOLD_EXPIRATION_MINUTES:30}
